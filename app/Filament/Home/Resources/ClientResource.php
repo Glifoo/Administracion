@@ -22,6 +22,7 @@ class ClientResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-s-users';
     protected static ?string $navigationGroup = 'Datos de Usuarios';
     protected static ?string $navigationLabel = 'Clientes';
+    protected static ?string $modelLabel = 'Clientes';
     protected static ?int $navigationSort = 1;
 
     public static function getEloquentQuery(): Builder
@@ -45,8 +46,8 @@ class ClientResource extends Resource
                         Forms\Components\TextInput::make('contacto')
                             ->tel()
                             ->required()
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255),
+                            ->rules(['required', 'max:12'])
+                            ->unique(ignoreRecord: true),
 
                         Forms\Components\TextInput::make('nit')
                             ->maxLength(255),
