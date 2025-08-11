@@ -32,8 +32,8 @@ class HomePanelProvider extends PanelProvider
             ->id('home')
             ->path('home')
             ->login()
+            ->passwordReset()
             ->profile(EditProfile::class)
-            // ->topNavigation()
             ->registration(AuthRegister::class)
             ->colors([
                 'primary' => Color::Blue,
