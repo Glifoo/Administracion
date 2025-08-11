@@ -1,6 +1,6 @@
 <x-layouts.principal titulo="Pulse" url="{{ asset('./estilo/inicio.css') }}">
     <div class="principal">
-       
+       <h1>GLifoo comunicacion digital</h1>
     </div>
 
 
