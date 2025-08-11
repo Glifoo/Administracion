@@ -1,4 +1,4 @@
-<x-layouts.principal titulo="Pulse" url="{{ asset('./estilo/inicio.css') }}">
+<x-layouts.principal titulo="Administrativo" url="{{ asset('./estilo/inicio.css') }}">
     <div class="principal">
        
     </div>

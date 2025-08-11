@@ -1,7 +1,7 @@
 <x-layouts.renovacion titulo="Renovacion de servicio" url="{{ asset('./estilo/renovacion.css') }}">
 
     <div class="form-container">
-        <h1 class="form-title">Glifoo Pulse</h1>
+        <h1 class="form-title">Glifoo Administrativo</h1>
         <h2 class="form-subtitle">Renovación de suscripción</h2>
 
         <form method="POST" action="{{ route('resuscripcion.store', ['renovacion' => $encryptedId]) }}">
