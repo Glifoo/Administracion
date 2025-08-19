@@ -29,6 +29,11 @@ class OrdenpagoResource extends Resource
     protected static ?int $navigationSort = 3;
 
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('usuario_id', auth()->id());
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -71,7 +76,7 @@ class OrdenpagoResource extends Resource
                 //
             ])
             ->actions([
-                ActionGroup::make([                  
+                ActionGroup::make([
                     Tables\Actions\Action::make('Pagar')
                         ->label('Pago')
                         ->icon('heroicon-o-clipboard-document-list')
@@ -81,9 +86,7 @@ class OrdenpagoResource extends Resource
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                   
-                ]),
+                Tables\Actions\BulkActionGroup::make([]),
             ]);
     }
 
