@@ -27,6 +27,14 @@ class Realizarpago extends Component
         $this->identificador = $identificador;
 
         $this->ordenpago = Ordenpago::with(['trabajo.cliente'])->findOrFail($identificador);
+
+        if (
+            !$this->ordenpago->trabajo ||
+            !$this->ordenpago->trabajo->cliente ||
+            $this->ordenpago->trabajo->cliente->usuario_id !== auth()->id()
+        ) {
+            abort(403, 'Acceso no autorizado a este pago.');
+        }
         $this->trabajo    = $this->ordenpago->trabajo;
         $this->pagos      = Pago::where('ordenpago_id', $this->ordenpago->id)
             ->orderByDesc('fecha')
@@ -73,9 +81,9 @@ class Realizarpago extends Component
             $this->fecha = now()->format('Y-m-d');
 
             Notification::make()
-            ->title('Pago realizado')
-            ->success()
-            ->send();
+                ->title('Pago realizado')
+                ->success()
+                ->send();
         });
     }
 

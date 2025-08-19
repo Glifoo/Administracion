@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'suscripcion.activa' => \App\Http\Middleware\VerificarSuscripcionActiva::class,
             'Checkfecha' => \App\Http\Middleware\Checkfecha::class,
+            'pago.owner' => \App\Http\Middleware\CheckPagoOwnership::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
