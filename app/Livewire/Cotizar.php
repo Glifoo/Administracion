@@ -156,6 +156,7 @@ class Cotizar extends Component
             $total = $totalconganancia   + $iva;
         } else {
             $total = $totalconganancia + $ganancia;
+            $iva=0;
         }
 
         if ($iva > 0) {

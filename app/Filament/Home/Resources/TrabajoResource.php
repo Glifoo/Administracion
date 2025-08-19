@@ -76,13 +76,6 @@ class TrabajoResource extends Resource
                             ->numeric()
                             ->default(0.00),
 
-                        Forms\Components\TextInput::make('manobra')
-                            ->label('Mano de obra')
-                            ->required()
-                            ->helperText('Si su trabajo no requiere de materiales o insumos poner el precio del trabajo aqui.')
-                            ->numeric()
-                            ->default(0.00),
-
                         Forms\Components\TextInput::make('ganancia')
                             ->label('Ganancia sobre el trabajo')
                             ->required()
@@ -177,8 +170,8 @@ class TrabajoResource extends Resource
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
 
                     Tables\Actions\DeleteAction::make()
-                        ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'gray' : 'danger')
-                        ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
+                        ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'gray' : 'danger'),
+                        // ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
                 ])
             ])
             ->bulkActions([
