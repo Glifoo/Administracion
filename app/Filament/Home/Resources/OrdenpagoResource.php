@@ -28,7 +28,13 @@ class OrdenpagoResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('trabajo.cliente', function ($query) {
+                $query->where('usuario_id', auth()->id());
+            });
+    }
     public static function form(Form $form): Form
     {
         return $form
