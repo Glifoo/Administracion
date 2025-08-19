@@ -32,8 +32,11 @@ class OrdenpagoResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('usuario_id', auth()->id());
+            ->whereHas('cliente', function ($query) {
+                $query->where('usuario_id', auth()->id());
+            });
     }
+
     public static function form(Form $form): Form
     {
         return $form
