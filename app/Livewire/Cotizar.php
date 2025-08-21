@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Insumo;
+use App\Models\Ordencompra;
 use App\Models\Ordenpago;
 use App\Models\Trabajo;
 use Livewire\Component;
@@ -156,7 +157,7 @@ class Cotizar extends Component
             $total = $totalconganancia   + $iva;
         } else {
             $total = $totalconganancia + $ganancia;
-            $iva=0;
+            $iva = 0;
         }
 
         if ($iva > 0) {
@@ -184,7 +185,16 @@ class Cotizar extends Component
             'total' => $total,
             'saldo' => $total,
         ]);
-        
+
+        foreach ($insumos as $insumo) {
+            Ordencompra::create([
+                'insumo_id' => $insumo->id,
+                'total' => $insumo->costo,  // cada insumo como una orden individual
+                'cuenta' => 0,              // aún no pagado
+                'saldo' => $insumo->costo,
+            ]);
+        }
+
 
         Notification::make()
             ->title('Cotización finalizada')

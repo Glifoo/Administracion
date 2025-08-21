@@ -19,7 +19,7 @@ class Insumo extends Model
      * 
      * realciones
      */
-    
+
     public function trabajo()
     {
         return $this->belongsTo(Trabajo::class, 'trabajo_id');
@@ -28,5 +28,9 @@ class Insumo extends Model
     public function medida()
     {
         return $this->belongsTo(Medida::class, 'medida_id');
+    }
+    public function ordenescompra()
+    {
+        return $this->hasMany(Ordencompra::class);
     }
 }

@@ -23,7 +23,7 @@ class OrdenpagoResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-m-currency-dollar';
     protected static ?string $navigationGroup = 'Pagos';
-    protected static ?string $navigationLabel = 'Pagos';
+    protected static ?string $navigationLabel = 'Cuentas por cobrar';
     protected static ?string $pluralModelLabel = 'Ventas y pagos';
 
     protected static ?int $navigationSort = 3;

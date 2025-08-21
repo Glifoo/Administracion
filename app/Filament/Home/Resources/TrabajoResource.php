@@ -161,6 +161,7 @@ class TrabajoResource extends Resource
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
 
                     ViewAction::make()
+                        ->label('Ver Trabajo')
                         ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'success' : 'success'),
 
                     Tables\Actions\Action::make('Verinsumo')
