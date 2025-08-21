@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Swindon\FilamentHashids\Traits\HasHashid;
 
 class Client extends Model
 {
+    use HasHashid;
+
     protected $fillable = [
         'nombre',
         'apellido',

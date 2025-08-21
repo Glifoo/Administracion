@@ -4,6 +4,7 @@ namespace App\Filament\Home\Resources;
 
 use App\Filament\Home\Resources\TrabajoResource\Pages;
 use App\Filament\Home\Resources\TrabajoResource\Pages\CotizarTrabajo;
+use App\Filament\Home\Resources\TrabajoResource\Pages\VerInsumo;
 use App\Filament\Home\Resources\TrabajoResource\RelationManagers;
 use App\Models\Client;
 use App\Models\Trabajo;
@@ -155,12 +156,19 @@ class TrabajoResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    ViewAction::make()
-                        ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'success' : 'success'),
-
                     Tables\Actions\EditAction::make()
                         ->color(fn(Trabajo $record): string => $record->estado === 'por cotizar' ? 'success' : 'gray')
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
+
+                    ViewAction::make()
+                        ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'success' : 'success'),
+
+                    Tables\Actions\Action::make('Verinsumo')
+                        ->label('Ver Insumos')
+                        ->icon('heroicon-m-magnifying-glass-circle')
+                        ->url(fn(Trabajo $record): string => route('filament.home.resources.trabajos.Verinsumo', ['record' => $record]))
+                        ->color(fn(Trabajo $record): string => $record->estado === 'por cotizar' ? 'gray' : 'primary')
+                        ->disabled(fn(Trabajo $record): bool => $record->estado === 'por cotizar'),
 
                     Tables\Actions\Action::make('cotizar')
                         ->label('Cotizar')
@@ -171,7 +179,7 @@ class TrabajoResource extends Resource
 
                     Tables\Actions\DeleteAction::make()
                         ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'gray' : 'danger'),
-                        // ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
+                    // ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
                 ])
             ])
             ->bulkActions([
@@ -193,6 +201,7 @@ class TrabajoResource extends Resource
             'create' => Pages\CreateTrabajo::route('/create'),
             'edit' => Pages\EditTrabajo::route('/{record}/edit'),
             'cotizar' => CotizarTrabajo::route('/{record}/cotizar'),
+            'Verinsumo' => VerInsumo::route('/{record}/verinsumo'),
         ];
     }
 }

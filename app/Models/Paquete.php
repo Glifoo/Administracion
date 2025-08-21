@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Swindon\FilamentHashids\Traits\HasHashid;
 
 class Paquete extends Model
 {
+  use HasHashid;
   protected $fillable = [
     'nombre',
     'descripcion',

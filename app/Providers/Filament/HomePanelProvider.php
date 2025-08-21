@@ -22,6 +22,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\MenuItem;
+use Swindon\FilamentHashids\Middleware\FilamentHashidsMiddleware;
+
 
 class HomePanelProvider extends PanelProvider
 {
@@ -37,6 +39,9 @@ class HomePanelProvider extends PanelProvider
             ->registration(AuthRegister::class)
             ->colors([
                 'primary' => Color::Blue,
+            ])
+            ->middleware([
+                FilamentHashidsMiddleware::class,
             ])
             ->discoverResources(in: app_path('Filament/Home/Resources'), for: 'App\\Filament\\Home\\Resources')
             ->discoverPages(in: app_path('Filament/Home/Pages'), for: 'App\\Filament\\Home\\Pages')

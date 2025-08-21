@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Swindon\FilamentHashids\Traits\HasHashid;
 
 class Pago extends Model
 {
+    use HasHashid;
+
     protected $fillable = [
         'fecha',
         'pago',

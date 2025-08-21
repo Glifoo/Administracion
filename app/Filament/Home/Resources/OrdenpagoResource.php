@@ -81,7 +81,10 @@ class OrdenpagoResource extends Resource
                     Tables\Actions\Action::make('Pagar')
                         ->label('Pago')
                         ->icon('heroicon-o-clipboard-document-list')
+
                         ->url(fn(Ordenpago $record): string => route('filament.home.resources.ordenpagos.pago', ['record' => $record]))
+
+
                         ->color(fn(Ordenpago $record): string => $record->estado === 'Por pagar' ? 'success' : 'primary')
                         ->disabled(fn(Ordenpago $record): bool => $record->estado === 'cotizado'),
                 ])

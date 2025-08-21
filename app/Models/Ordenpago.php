@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Swindon\FilamentHashids\Traits\HasHashid;
 
 class Ordenpago extends Model
 {
+    use HasHashid;
+
     protected $fillable = [
         'total',
         'cuenta',

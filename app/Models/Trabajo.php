@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Swindon\FilamentHashids\Traits\HasHashid;
 
 class Trabajo extends Model
 {
+    use HasHashid;
     protected $fillable = [
         'trabajo',
         'descripcion',

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\Renovacion;
 use App\Models\Renovation;
 use App\Models\Sell;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
 
 class RenovacionController extends Controller
@@ -54,15 +56,15 @@ class RenovacionController extends Controller
                 'concepto'=>"renovacion",
             ]);
 
-            // $adminEmails = User::where('rol_id', 1)->pluck('email')->toArray();
+            $adminEmails = User::where('rol_id', 1)->pluck('email')->toArray();
             
-            // if (!empty($adminEmails)) {
-            //     Mail::to($adminEmails)->send(new Renovacion(
-            //         $user,
-            //         $user->suscripcion->paquete,
-            //         $request->meses
-            //     ));
-            // }
+            if (!empty($adminEmails)) {
+                Mail::to($adminEmails)->send(new Renovacion(
+                    $user,
+                    $user->suscripcion->paquete,
+                    $request->meses
+                ));
+            }
 
             return Redirect::route('inicio')->with('msj', 'solievi');
         } catch (\Exception $e) {
