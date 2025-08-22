@@ -3,6 +3,7 @@
 namespace App\Filament\Home\Resources;
 
 use App\Filament\Home\Resources\OrdencompraResource\Pages;
+use App\Filament\Home\Resources\OrdencompraResource\Pages\PagoInsumo;
 use App\Filament\Home\Resources\OrdencompraResource\RelationManagers;
 use App\Models\Ordencompra;
 use App\Models\Trabajo;
@@ -62,14 +63,11 @@ class OrdencompraResource extends Resource
                     ->numeric()
                     ->label('Costo'),
 
-                tables\Columns\TextColumn::make('cuenta')
-                    ->label('A cuenta'),
-
                 tables\Columns\TextColumn::make('saldo')
                     ->label('Saldo'),
 
                 tables\Columns\TextColumn::make('estado')
-                    ->label('Estado')
+                    ->label('Estado de pagos')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'Por pagar' => 'danger',
@@ -112,7 +110,6 @@ class OrdencompraResource extends Resource
                     ->options([
                         'Por pagar' => 'Por pagar',
                         'Pagado' => 'Pagado',
-                        // Agrega otros estados si los tienes
                     ])
                     ->query(function (Builder $query, array $data) {
                         if (!empty($data['value'])) {
@@ -123,10 +120,10 @@ class OrdencompraResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\Action::make('Pagar')
-                        ->label('Pago')
+                        ->label('Pago insumo')
                         ->icon('heroicon-o-clipboard-document-list')
 
-                    // ->url(fn(Ordenpago $record): string => route('filament.home.resources.ordenpagos.pago', ['record' => $record]))
+                    ->url(fn(Ordencompra $record): string => route('filament.home.resources.ordencompras.pago', ['record' => $record]))
 
 
                     // ->color(fn(Ordenpago $record): string => $record->estado === 'Por pagar' ? 'success' : 'primary')
@@ -149,6 +146,7 @@ class OrdencompraResource extends Resource
     {
         return [
             'index' => Pages\ListOrdencompras::route('/'),
+             'pago' => PagoInsumo::route('/{record}/pago'),
         ];
     }
 }
