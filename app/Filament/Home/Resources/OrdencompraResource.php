@@ -109,7 +109,7 @@ class OrdencompraResource extends Resource
                     ->label('Estado de Pago')
                     ->options([
                         'Por pagar' => 'Por pagar',
-                        'Pagado' => 'Pagado',
+                        'cancelado' => 'cancelado',
                     ])
                     ->query(function (Builder $query, array $data) {
                         if (!empty($data['value'])) {
