@@ -76,6 +76,16 @@ class OrdencompraResource extends Resource
                     ->searchable(),
             ])
             ->filters([
+                SelectFilter::make('cliente')
+                    ->label('Filtrar por Cliente')
+                    ->relationship(
+                        'insumo.trabajo.cliente',
+                        'nombre',
+                        fn(Builder $query) => $query->where('usuario_id', auth()->id())
+                    )
+                    ->searchable()
+                    ->preload(),
+
                 SelectFilter::make('trabajo')
                     ->label('Filtrar por Trabajo')
                     ->options(function () {
@@ -95,16 +105,7 @@ class OrdencompraResource extends Resource
                             });
                         }
                     }),
-                SelectFilter::make('cliente')
-                    ->label('Filtrar por Cliente')
-                    ->relationship(
-                        'insumo.trabajo.cliente',
-                        'nombre',
-                        fn(Builder $query) => $query->where('usuario_id', auth()->id())
-                    )
-                    ->searchable()
-                    ->preload(),
-                    
+
                 SelectFilter::make('estado')
                     ->label('Estado de Pago')
                     ->options([
@@ -123,7 +124,7 @@ class OrdencompraResource extends Resource
                         ->label('Pago insumo')
                         ->icon('heroicon-o-clipboard-document-list')
 
-                    ->url(fn(Ordencompra $record): string => route('filament.home.resources.ordencompras.pago', ['record' => $record]))
+                        ->url(fn(Ordencompra $record): string => route('filament.home.resources.ordencompras.pago', ['record' => $record]))
 
 
                     // ->color(fn(Ordenpago $record): string => $record->estado === 'Por pagar' ? 'success' : 'primary')
@@ -146,7 +147,7 @@ class OrdencompraResource extends Resource
     {
         return [
             'index' => Pages\ListOrdencompras::route('/'),
-             'pago' => PagoInsumo::route('/{record}/pago'),
+            'pago' => PagoInsumo::route('/{record}/pago'),
         ];
     }
 }
