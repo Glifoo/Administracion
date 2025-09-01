@@ -93,7 +93,7 @@ class OrdencompraResource extends Resource
                         return Trabajo::whereHas('cliente', function ($query) {
                             $query->where('usuario_id', auth()->id());
                         })
-                            ->pluck('trabajo', 'id') // Cambia 'trabajo' por el nombre real del campo
+                            ->pluck('trabajo', 'id')
                             ->toArray();
                     })
                     ->searchable()

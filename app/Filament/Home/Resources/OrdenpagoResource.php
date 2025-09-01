@@ -16,6 +16,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ViewAction;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Blade;
+use Filament\Tables\Actions\Action;
 
 class OrdenpagoResource extends Resource
 {
@@ -47,6 +50,9 @@ class OrdenpagoResource extends Resource
     {
         return $table
             ->columns([
+                tables\Columns\TextColumn::make('id')
+                    ->label('ID'),
+
                 tables\Columns\TextColumn::make('trabajo.cliente.nombre')
                     ->label('Nombre'),
 
@@ -81,12 +87,19 @@ class OrdenpagoResource extends Resource
                     Tables\Actions\Action::make('Pagar')
                         ->label('Pago')
                         ->icon('heroicon-o-clipboard-document-list')
-
                         ->url(fn(Ordenpago $record): string => route('filament.home.resources.ordenpagos.pago', ['record' => $record]))
-
-
                         ->color(fn(Ordenpago $record): string => $record->estado === 'Por pagar' ? 'success' : 'primary')
                         ->disabled(fn(Ordenpago $record): bool => $record->estado === 'cotizado'),
+
+                    Tables\Actions\Action::make('pdf')
+                        ->label('PDF')
+                        ->color('success')
+                        ->icon('heroicon-m-document-arrow-down')
+                        ->url(fn (Ordenpago $record) => route('ordenpago.pdf', $record))
+                        ->openUrlInNewTab()
+                        ->color(fn(Ordenpago $record): string => $record->estado === 'Por pagar' ? 'gray' : 'success')
+                        ->disabled(fn(Ordenpago $record): bool => $record->estado === 'Por pagar'),
+
                 ])
             ])
             ->bulkActions([

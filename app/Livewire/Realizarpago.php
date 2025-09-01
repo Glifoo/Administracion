@@ -8,7 +8,7 @@ use App\Models\Trabajo;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Filament\Notifications\Notification;
-
+use Illuminate\Support\Facades\Auth;
 
 class Realizarpago extends Component
 {
@@ -24,6 +24,7 @@ class Realizarpago extends Component
 
     public function mount(int $identificador): void
     {
+        $user = Auth::user();
         $this->identificador = $identificador;
 
         $this->ordenpago = Ordenpago::with(['trabajo.cliente'])->findOrFail($identificador);
@@ -31,7 +32,7 @@ class Realizarpago extends Component
         if (
             !$this->ordenpago->trabajo ||
             !$this->ordenpago->trabajo->cliente ||
-            $this->ordenpago->trabajo->cliente->usuario_id !== auth()->id()
+            $this->ordenpago->trabajo->cliente->usuario_id !== $user
         ) {
             abort(403, 'Acceso no autorizado a este pago.');
         }

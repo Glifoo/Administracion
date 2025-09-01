@@ -1,0 +1,100 @@
+.page-break {
+    page-break-after: always;
+}
+
+.contenedor {
+    display: gr;
+    flex-direction: column;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.lienzo {
+    margin: 15px;
+}
+
+.encabezado {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 50px;
+
+}
+
+.direccion {
+    width: 350px;
+}
+
+.logo img {
+    width: 130px;
+}
+
+.cuerpo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 50px;
+}
+
+.cuerpo h1 {
+    display: flex;
+    color: #c0211c;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+table {
+    border: 1px solid rgb(200, 200, 200);
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    width: 100%;
+    margin-top: 1vw;
+    margin-bottom: 5vh;
+}
+
+.titulo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #c0211c;
+    margin: 25px;
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+tr {
+    text-align: center;
+}
+
+tr:nth-child(odd) {
+    background: rgb(225, 225, 225);
+    color: black;
+
+}
+
+th {
+    background: #c0211c;
+    border: 1px solid rgb(160, 160, 160);
+    color: rgb(255, 255, 255);
+    padding: .8rem;
+}
+
+td {
+    border: 1px solid rgb(160, 160, 160);
+    padding: .8rem;
+}
+
+table tr:hover {
+    background: rgb(255, 235, 185);
+}
+
+.table-container {
+    margin: 0 0 1rem;
+    overflow: auto;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.firma {
+    margin-top: 200px;
+}

@@ -8,6 +8,8 @@ use App\Models\Ordenpago;
 use App\Models\Trabajo;
 use Livewire\Component;
 use Filament\Notifications\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class Cotizar extends Component
 {
@@ -209,6 +211,7 @@ class Cotizar extends Component
     {
         $insumos = Insumo::where('trabajo_id', $this->identificador)->get();
         $trabajo = Trabajo::find($this->identificador);
+        $idtrabajo = $trabajo->id;
 
         $costoprod = $insumos->sum('costo');
         $parcial = $costoprod + $trabajo->manobra;
@@ -222,6 +225,6 @@ class Cotizar extends Component
         } else {
             $total = $totalconganancia + $ganancia;
         }
-        return view('livewire.cotizar', compact('insumos', 'total', 'costoprod'));
+        return view('livewire.cotizar', compact('insumos', 'total', 'costoprod', 'idtrabajo'));
     }
 }

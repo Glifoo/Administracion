@@ -248,12 +248,18 @@
                         class="fi-btn relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus:ring-2 rounded-lg fi-color-gray fi-size-md fi-btn-color-gray gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-gray-50 text-gray-700 hover:bg-gray-100 focus:ring-gray-500 dark:bg-gray-500/10 dark:text-gray-300 dark:hover:bg-gray-500/20 dark:focus:ring-gray-500">
                         Regresar
                     </a>
+                    @php
+                        $encryptedId = Crypt::encrypt($idtrabajo);
+                    @endphp
+                    <x-filament::button tag="a" href="{{ route('cotizacionodf', $encryptedId) }}"
+                        target="_blank" color="warning" icon="heroicon-m-document-arrow-down">
+                        Crear cotización PDF
+                    </x-filament::button>
+
                     <x-filament::button wire:click="confirmarFinalizacion" :disabled="$estadoActual === 'completado'" color="primary">
                         <x-heroicon-o-check class="h-5 w-5 mr-2" />
                         Terminar Cotización
                     </x-filament::button>
-
-
                 </div>
             </div>
         </div>
