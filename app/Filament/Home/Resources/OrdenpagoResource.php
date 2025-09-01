@@ -50,9 +50,6 @@ class OrdenpagoResource extends Resource
     {
         return $table
             ->columns([
-                tables\Columns\TextColumn::make('id')
-                    ->label('ID'),
-
                 tables\Columns\TextColumn::make('trabajo.cliente.nombre')
                     ->label('Nombre'),
 
@@ -95,7 +92,7 @@ class OrdenpagoResource extends Resource
                         ->label('PDF')
                         ->color('success')
                         ->icon('heroicon-m-document-arrow-down')
-                        ->url(fn (Ordenpago $record) => route('ordenpago.pdf', $record))
+                        ->url(fn(Ordenpago $record) => route('ordenpago.pdf', $record))
                         ->openUrlInNewTab()
                         ->color(fn(Ordenpago $record): string => $record->estado === 'Por pagar' ? 'gray' : 'success')
                         ->disabled(fn(Ordenpago $record): bool => $record->estado === 'Por pagar'),

@@ -32,7 +32,7 @@ class Realizarpago extends Component
         if (
             !$this->ordenpago->trabajo ||
             !$this->ordenpago->trabajo->cliente ||
-            $this->ordenpago->trabajo->cliente->usuario_id !== $user
+            $this->ordenpago->trabajo->cliente->usuario_id !== $user->id
         ) {
             abort(403, 'Acceso no autorizado a este pago.');
         }
