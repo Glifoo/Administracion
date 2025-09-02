@@ -47,17 +47,21 @@ class PdfController extends Controller
     {
         $user = Auth::user();
         $id = Crypt::decrypt($trabajoId);
+        $ordenpago = Ordenpago::findOrFail($id);
         $trabajo = Trabajo::findOrFail($id);
         $items = Insumo::where('trabajo_id', $trabajo->id)->get();
         $total = Insumo::where('trabajo_id',  $trabajo->id)->sum('costo');
 
-
-        $pdf = Pdf::loadView('cotizacionpdf', [
-            'trabajo' => $trabajo,
-            'items' => $items,
-            'total' => $total,
-            'user' => $user,
-        ]);
-        return $pdf->stream("cotizacion.pdf");
+        if ($ordenpago->trabajo->cliente->usuario_id == $user->id) {
+            $pdf = Pdf::loadView('cotizacionpdf', [
+                'trabajo' => $trabajo,
+                'items' => $items,
+                'total' => $total,
+                'user' => $user,
+            ]);
+            return $pdf->stream("cotizacion.pdf");
+        } else {
+            abort(403, 'Acceso no autorizado a este pago.');
+        }
     }
 }
