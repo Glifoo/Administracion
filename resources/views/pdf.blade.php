@@ -16,7 +16,12 @@
         <div class="lienzo">
             <div class="encabezado">
                 <div class="logo">
-                    <img src="{{ public_path('storage/' . $user->logo) }}" alt="Logo">
+                    @if (!empty($user->logo) && file_exists(public_path('storage/' . $user->logo)))
+                        <img src="{{ public_path('storage/' . $user->logo) }}" alt="Logo">
+                    @else
+                        {{-- Logo por defecto o nada --}}
+                        <img src="{{ public_path('img/logos/Boton.webp') }}" alt="Logo por defecto">
+                    @endif
                 </div>
             </div>
             <div class="cuerpo">
