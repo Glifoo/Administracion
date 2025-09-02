@@ -34,7 +34,7 @@ class HomePanelProvider extends PanelProvider
             ->id('home')
             ->path('home')
             ->login()
-            // ->passwordReset()
+            ->passwordReset()
             ->profile(EditProfile::class)
             ->registration(AuthRegister::class)
             ->colors([

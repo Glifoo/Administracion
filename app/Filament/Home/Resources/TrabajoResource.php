@@ -80,7 +80,7 @@ class TrabajoResource extends Resource
                         Forms\Components\TextInput::make('ganancia')
                             ->label('Ganancia sobre el trabajo')
                             ->required()
-                            ->helperText('Poner cual sera su ganancia sobre la produccion del trabajo 0 - 100%.')
+                            ->helperText('Poner cual sera su ganancia sobre la produccion del trabajo 0 - 100%. (Lo recomendable es poner 30)')
                             ->numeric()
                             ->minValue(0)
                             ->maxValue(100)

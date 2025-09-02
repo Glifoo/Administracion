@@ -31,13 +31,14 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->passwordReset()
+            ->passwordReset()
             ->profile()
-            
+
             ->colors([
                 'primary' => Color::Amber,
             ])
-             ->middleware([
-                FilamentHashidsMiddleware::class,                   
+            ->middleware([
+                FilamentHashidsMiddleware::class,
             ])
 
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
