@@ -178,6 +178,15 @@ class TrabajoResource extends Resource
                         ->color(fn(Trabajo $record): string => $record->estado === 'por cotizar' ? 'success' : 'gray')
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
 
+                    Tables\Actions\Action::make('pdf')
+                        ->label('PDF')
+                        ->color('success')
+                        ->icon('heroicon-m-document-arrow-down')
+                        ->url(fn(Trabajo $record) => route('pdfcotizacion', $record))
+                        ->openUrlInNewTab()
+                        ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'success' : 'gray')
+                        ->disabled(fn(Trabajo $record): bool => $record->estado === 'por cotizar'),
+
                     Tables\Actions\DeleteAction::make()
                         ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'gray' : 'danger'),
                     // ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),

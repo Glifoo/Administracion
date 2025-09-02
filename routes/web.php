@@ -25,6 +25,9 @@ Route::middleware([Authenticate::class, Checkfecha::class, VerificarSuscripcionA
     Route::get('ordenpago/{record}/pdf', [PdfController::class, 'generate'])
         ->name('ordenpago.pdf');
 
+    Route::get('trabajos/{record}', [PdfController::class, 'pdfcotizacion'])
+        ->name('pdfcotizacion');
+
     Route::get('trabajos/{record}/pdf', [PdfController::class, 'cotizacionpdf'])
         ->name('cotizacionodf');
 });

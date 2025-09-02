@@ -1,100 +1,172 @@
-.page-break {
-    page-break-after: always;
+/* Estilos generales */
+body {
+    font-family: 'DejaVu Sans', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #fff;
 }
 
 .contenedor {
-    display: gr;
-    flex-direction: column;
     width: 100%;
-    justify-content: center;
-    align-items: center;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .lienzo {
-    margin: 15px;
+    border: 1px solid #ddd;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Encabezado */
 .encabezado {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 50px;
-
+    align-items: flex-start;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #2c5282;
+    padding-bottom: 20px;
 }
 
-.direccion {
-    width: 350px;
+.logo {
+    flex: 1;
 }
 
 .logo img {
-    width: 130px;
+    max-height: 80px;
+    max-width: 200px;
 }
 
-.cuerpo {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 50px;
+.fecha-cotizacion {
+    text-align: right;
+    color: #666;
 }
 
+.fecha-cotizacion .fecha {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.fecha-cotizacion .numero-cotizacion {
+    font-size: 12px;
+    color: #888;
+}
+
+/* Cuerpo */
 .cuerpo h1 {
-    display: flex;
-    color: #c0211c;
-    justify-content: center;
-    align-items: center;
     text-align: center;
+    color: #2c5282;
+    margin-bottom: 30px;
+    font-size: 24px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
+.cabezeracoti {
+    background-color: #f8fafc;
+    padding: 15px;
+    border-left: 4px solid #2c5282;
+    margin-bottom: 25px;
+    border-radius: 4px;
+}
+
+.cabezeracoti h2 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 16px;
+}
+
+/* Tabla */
 table {
-    border: 1px solid rgb(200, 200, 200);
-    border-collapse: collapse;
-    font-size: 0.9rem;
     width: 100%;
-    margin-top: 1vw;
-    margin-bottom: 5vh;
-}
-
-.titulo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #c0211c;
-    margin: 25px;
-    font-size: 1.5rem;
-    text-align: center;
-}
-
-tr {
-    text-align: center;
-}
-
-tr:nth-child(odd) {
-    background: rgb(225, 225, 225);
-    color: black;
-
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    background-color: #fff;
 }
 
 th {
-    background: #c0211c;
-    border: 1px solid rgb(160, 160, 160);
-    color: rgb(255, 255, 255);
-    padding: .8rem;
+    background-color: #2c5282;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
 }
 
-td {
-    border: 1px solid rgb(160, 160, 160);
-    padding: .8rem;
+td.filas-tabla {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    vertical-align: top;
 }
 
-table tr:hover {
-    background: rgb(255, 235, 185);
+tfoot th {
+    background-color: #edf2f7;
+    color: #2d3748;
+    font-weight: bold;
 }
 
-.table-container {
-    margin: 0 0 1rem;
-    overflow: auto;
-    overflow-y: auto;
-    width: 100%;
+tfoot td {
+    background-color: #edf2f7;
+    font-weight: bold;
+    color: #2c5282;
 }
 
-.firma {
-    margin-top: 200px;
+/* Pie final */
+.piefinal {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border-left: 4px solid #2c5282;
+}
+
+.piefinal p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #2d3748;
+}
+
+/* Total destacado */
+.total-destacado {
+    text-align: right;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #2c5282;
+    color: white;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Información adicional */
+.info-adicional {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #666;
+    border-top: 2px solid #e2e8f0;
+}
+
+/* Responsive */
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .contenedor {
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .lienzo {
+        border: none;
+        padding: 15mm;
+        box-shadow: none;
+    }
 }

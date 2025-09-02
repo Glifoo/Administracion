@@ -87,9 +87,6 @@ class Realizarpago extends Component
                 ->send();
         });
     }
-
-
-
     public function render()
     {
         return view('livewire.realizarpago');
