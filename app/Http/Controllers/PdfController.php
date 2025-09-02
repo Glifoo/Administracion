@@ -47,12 +47,11 @@ class PdfController extends Controller
     {
         $user = Auth::user();
         $id = Crypt::decrypt($trabajoId);
-        $ordenpago = Ordenpago::findOrFail($id);
         $trabajo = Trabajo::findOrFail($id);
         $items = Insumo::where('trabajo_id', $trabajo->id)->get();
         $total = Insumo::where('trabajo_id',  $trabajo->id)->sum('costo');
 
-        if ($ordenpago->trabajo->cliente->usuario_id == $user->id) {
+        if ($trabajo->cliente->usuario_id == $user->id) {
             $pdf = Pdf::loadView('cotizacionpdf', [
                 'trabajo' => $trabajo,
                 'items' => $items,
