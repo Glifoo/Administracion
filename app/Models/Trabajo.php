@@ -31,7 +31,7 @@ class Trabajo extends Model
 
     public function cliente()
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(Client::class, 'cliente_id');
     }
 
     public function ordenesPago()

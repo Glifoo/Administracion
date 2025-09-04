@@ -5,6 +5,7 @@ namespace App\Filament\Home\Widgets;
 use App\Models\Client;
 use App\Models\Ordenpago;
 use App\Models\Trabajo;
+use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\Widget;
@@ -46,9 +47,9 @@ class WidgetStats extends BaseWidget
                 ->color('success'),
 
             Stat::make('En Proceso', $enproceso)
-
                 ->icon('heroicon-o-clock')
-                ->color('warning'),
+                ->color('warning')
+                ->url(route('filament.home.resources.trabajos.index')),
 
             Stat::make('Ganancias Totales', $gananciastotales)
                 ->description($gananciastotales . ' cobrado')
@@ -60,7 +61,9 @@ class WidgetStats extends BaseWidget
                 ->description($ordenpagos . ' por cobrar')
                 ->descriptionIcon('heroicon-m-arrow-trending-down')
                 ->icon('heroicon-o-exclamation-circle')
-                ->color('danger'),
+                ->color('danger')
+                ->url(route('filament.home.resources.ordenpagos.index')),
+
         ];
     }
 }

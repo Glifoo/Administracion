@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Home\Pages\Auth\EditProfile;
 use App\Filament\Home\Resources\NoResource\Pages\Auth\Register as AuthRegister;
+use App\Filament\Home\Widgets\WidgetStats;
 use App\Http\Middleware\Checkfecha;
 use App\Http\Middleware\VerificarSuscripcionActiva;
 use Filament\Http\Middleware\Authenticate;
@@ -51,6 +52,8 @@ class HomePanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Home/Widgets'), for: 'App\\Filament\\Home\\Widgets')
             ->widgets([
                 
+                WidgetStats::class,
+
             ])
             ->middleware([
                 EncryptCookies::class,

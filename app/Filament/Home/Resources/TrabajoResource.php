@@ -153,6 +153,18 @@ class TrabajoResource extends Resource
                     )
                     ->searchable()
                     ->preload(),
+
+                    SelectFilter::make('estado')
+                    ->label('Estado de Pago')
+                    ->options([
+                        'cotizado' => 'cotizado',
+                        'por cotizar' => 'por cotizar',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->where('estado', $data['value']);
+                        }
+                    })
             ])
             ->actions([
                 ActionGroup::make([
