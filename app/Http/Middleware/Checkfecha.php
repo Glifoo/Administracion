@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Renovation;
 use App\Models\Suscripcion;
 use Closure;
 use Filament\Notifications\Actions\Action;
@@ -38,12 +39,16 @@ class Checkfecha
         $fechaFin = Carbon::parse($user->suscripcion->fecha_fin);
         $dias = (int) round(now()->diffInDays($fechaFin, false));
 
+      $tieneRenovacionPendiente = Renovation::whereHas('suscripcion', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })
+            ->where('estado', 'pendiente')
+            ->exists();
+
         if ($fechaActual->between($inicio, $fechaFin)) {
 
             // Mostrar la advertencia si quedan pocos días y aún no fue notificado
-            if ($dias <= 5 && !session()->has('notificado_suscripcion')) {
-
-
+            if ($dias <= 5 && !$tieneRenovacionPendiente) {
 
                 Notification::make()
                     ->title("¡Le quedan $dias días de suscripción!")

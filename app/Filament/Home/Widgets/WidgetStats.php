@@ -4,8 +4,10 @@ namespace App\Filament\Home\Widgets;
 
 use App\Models\Client;
 use App\Models\Ordenpago;
+use App\Models\Suscripcion;
 use App\Models\Trabajo;
 use App\Models\User;
+use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\Widget;
@@ -17,6 +19,26 @@ class WidgetStats extends BaseWidget
     protected function getStats(): array
     {
         $userId = Auth::id();
+
+        $suscripcion = Suscripcion::where('user_id', $userId)->first();
+
+        $tiempoRestante = null;
+
+        if ($suscripcion && $suscripcion->fecha_fin) {
+            $hoy = Carbon::now();
+            $fin = Carbon::parse($suscripcion->fecha_fin);
+
+            if ($fin->isPast()) {
+                $tiempoRestante = 'Expirada';
+                $descripcionTiempo = 'La suscripción ya terminó';
+            } else {
+                $diff = $hoy->diff($fin);
+                $mesesRestantes = $diff->m + ($diff->y * 12); 
+                $diasRestantes = $diff->d;
+                $tiempoRestante = "{$mesesRestantes} mes(es) y {$diasRestantes} día(s)";
+                $descripcionTiempo = "Restan {$mesesRestantes} mes(es) y {$diasRestantes} día(s) de suscripción";
+            }
+        }
 
         $clientesIds = Client::where('usuario_id', $userId)
             ->pluck('id');
@@ -41,12 +63,17 @@ class WidgetStats extends BaseWidget
         );
 
         return [
-            Stat::make('Total Cotizaciones', $totalcotis)
+            Stat::make('Tiempo de suscripción', $tiempoRestante ?? 'Sin datos')
+                ->description($descripcionTiempo ?? '')
+                ->descriptionIcon('heroicon-m-clock')
+                ->icon('heroicon-o-calendar')
+                ->color(($tiempoRestante ?? '') === 'Expirada' ? 'danger' : 'success'),
 
+            Stat::make('Total Cotizaciones', $totalcotis)
                 ->icon('heroicon-o-document-text')
                 ->color('success'),
 
-            Stat::make('En Proceso', $enproceso)
+            Stat::make('Cotizaciones en Proceso', $enproceso)
                 ->icon('heroicon-o-clock')
                 ->color('warning')
                 ->url(route('filament.home.resources.trabajos.index')),
@@ -63,7 +90,6 @@ class WidgetStats extends BaseWidget
                 ->icon('heroicon-o-exclamation-circle')
                 ->color('danger')
                 ->url(route('filament.home.resources.ordenpagos.index')),
-
         ];
     }
 }

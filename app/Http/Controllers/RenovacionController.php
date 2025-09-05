@@ -20,19 +20,27 @@ class RenovacionController extends Controller
             $user = User::with('suscripcion.paquete')->findOrFail($id);
 
             // Verificación de seguridad adicional
+            $tieneRenovacionPendiente = Renovation::whereHas('suscripcion', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+                ->where('estado', 'pendiente')
+                ->exists();
 
-
-            return view('resuscripcion.index', [
-                'isSubmitting' => false,
-                'user' => $user,
-                'sus' => $user,
-                'encryptedId' => $renovacion
-            ]);
+            if (!$tieneRenovacionPendiente) {
+                return view('resuscripcion.index', [
+                    'isSubmitting' => false,
+                    'user' => $user,
+                    'sus' => $user,
+                    'encryptedId' => $renovacion
+                ]);
+            }else{
+                return Redirect::route('inicio')->with('msj', 'resusenviada');
+            }
         } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
             abort(404, 'Enlace inválido');
         }
     }
-     public function store(Request $request, $renovacion)
+    public function store(Request $request, $renovacion)
     {
         $request->validate([
             'meses' => 'required|in:1,3,6'
@@ -53,11 +61,11 @@ class RenovacionController extends Controller
                 'suscripcion_id' => $user->suscripcion->id,
                 'total' => number_format($user->suscripcion->paquete->preciounitario * $request->meses, 2),
                 'fecha' => now(),
-                'concepto'=>"renovacion",
+                'concepto' => "renovacion",
             ]);
 
             $adminEmails = User::where('rol_id', 1)->pluck('email')->toArray();
-            
+
             if (!empty($adminEmails)) {
                 Mail::to($adminEmails)->send(new Renovacion(
                     $user,
@@ -71,5 +79,4 @@ class RenovacionController extends Controller
             return back()->with('error', 'Error al procesar: ' . $e->getMessage());
         }
     }
-
 }

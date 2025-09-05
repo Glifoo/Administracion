@@ -51,7 +51,7 @@ class Sell extends Model
             ->success()
             ->send();
     }
-   public function procesarRenovacion()
+    public function procesarRenovacion()
     {
         $this->update([
             'pago' => $this->total,
@@ -65,7 +65,7 @@ class Sell extends Model
 
         if ($renewal) {
             $this->suscripcion->renovar($renewal->meses);
-            $renewal->update(['estado' => '1']);
+            $renewal->update(['estado' => '2']);
         }
 
         Notification::make()
