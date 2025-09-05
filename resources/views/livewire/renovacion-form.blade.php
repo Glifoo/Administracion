@@ -1,4 +1,5 @@
 <div>
+    @section('title', 'Renovación de Suscripción')
     <link rel="stylesheet" href="{{ asset('./estilo/renovacion.css') }}">
     <div class="form-container">
         <h1 class="form-title">Glifoo Pulse</h1>

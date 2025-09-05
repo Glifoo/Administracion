@@ -10,11 +10,12 @@ use Filament\Models\Contracts\FilamentUser;
 
 
 use Filament\Panel;
+use Swindon\FilamentHashids\Traits\HasHashid;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasHashid;
 
     /**
      * The attributes that are mass assignable.

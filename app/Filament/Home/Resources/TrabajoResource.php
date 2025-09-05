@@ -22,6 +22,7 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Support\Facades\Auth;
 
 class TrabajoResource extends Resource
 {
@@ -35,7 +36,7 @@ class TrabajoResource extends Resource
     {
         return self::where('estado', 'por cotizar')
             ->whereHas('cliente', function ($query) {
-                $query->where('usuario_id', auth()->id());
+                $query->where('usuario_id', Auth::user()->id);
             })
             ->count();
     }
@@ -44,7 +45,7 @@ class TrabajoResource extends Resource
     {
         return parent::getEloquentQuery()
             ->whereHas('cliente', function ($query) {
-                $query->where('usuario_id', auth()->id());
+                $query->where('usuario_id', Auth::user()->id);
             });
     }
 
@@ -149,13 +150,13 @@ class TrabajoResource extends Resource
                     ->relationship(
                         'cliente',
                         'nombre',
-                        fn(Builder $query) => $query->where('usuario_id', auth()->id())
+                        fn(Builder $query) => $query->where('usuario_id', Auth::user()->id)
                     )
                     ->searchable()
                     ->preload(),
 
-                    SelectFilter::make('estado')
-                    ->label('Estado de Pago')
+                SelectFilter::make('estado')
+                    ->label('Estado de Cotizacion')
                     ->options([
                         'cotizado' => 'cotizado',
                         'por cotizar' => 'por cotizar',

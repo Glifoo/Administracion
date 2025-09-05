@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Livewire App</title>
+   <title>Glifoo - @yield('title', 'Adminsitrativo')</title>
+    <link rel="icon" href="{{ asset('./img/logos/Boton.ico') }}">
     @livewireStyles
 </head>
 <body>

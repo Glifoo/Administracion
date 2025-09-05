@@ -15,6 +15,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Carbon\Carbon;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Filters\SelectFilter;
 
 class SuscripcionResource extends Resource
 {
@@ -33,6 +36,7 @@ class SuscripcionResource extends Resource
 
                 Forms\Components\Select::make('user_id')
                     ->label('Usuario')
+                    ->hiddenOn(['edit'])
                     ->relationship('user', 'name')
                     ->searchable()
                     ->preload()
@@ -48,6 +52,7 @@ class SuscripcionResource extends Resource
                 Forms\Components\DatePicker::make('fecha_inicio')
                     ->default(now())
                     ->required()
+                    ->readOnly()
                     ->live()
                     ->afterStateUpdated(function (Get $get, Set $set) {
                         if ($get('meses_suscripcion') && $get('fecha_inicio')) {
@@ -60,9 +65,9 @@ class SuscripcionResource extends Resource
                 Forms\Components\TextInput::make('meses_suscripcion')
                     ->label('Meses de suscripción')
                     ->numeric()
+                    ->hiddenOn(['edit'])
                     ->minValue(1)
                     ->default(1)
-
                     ->live()
                     ->afterStateUpdated(function (Get $get, Set $set) {
                         if ($get('fecha_inicio')) {
@@ -74,6 +79,7 @@ class SuscripcionResource extends Resource
 
                 Forms\Components\DatePicker::make('fecha_fin')
                     ->label('Fecha de finalización')
+                    ->readOnly()
                     ->required(),
 
                 Forms\Components\Toggle::make('estado')
@@ -91,11 +97,9 @@ class SuscripcionResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('paquete.nombre')
-                    ->numeric()
-                    ->sortable(),
+                    ->numeric(),
                 Tables\Columns\IconColumn::make('estado')
-                    ->boolean()
-                    ->sortable(),
+                    ->boolean(),
                 Tables\Columns\TextColumn::make('fecha_inicio')
                     ->date()
                     ->sortable(),
@@ -108,17 +112,34 @@ class SuscripcionResource extends Resource
                     ->color(function ($record) {
                         return $record->dias_restantes_color;
                     }),
+
             ])
             ->filters([
-                //
+                SelectFilter::make('estado')
+                    ->label('Estado de la suscripción')
+                    ->options([
+                        true => 'Activo',
+                        false => 'Inactivo',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (isset($data['value']) && $data['value'] !== '') {
+                            $estado = filter_var($data['value'], FILTER_VALIDATE_BOOLEAN);
+                            $query->where('estado', $estado);
+                        }
+                    })
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->color('success'),
+
+                    ViewAction::make()
+                        ->label('Ver Cliente')
+                        ->color('primary'),
+                ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\BulkActionGroup::make([]),
             ]);
     }
 
@@ -133,7 +154,6 @@ class SuscripcionResource extends Resource
     {
         return [
             'index' => Pages\ListSuscripcions::route('/'),
-            'create' => Pages\CreateSuscripcion::route('/create'),
             'edit' => Pages\EditSuscripcion::route('/{record}/edit'),
         ];
     }

@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\SelectFilter;
 
 class SellResource extends Resource
 {
@@ -68,7 +69,6 @@ class SellResource extends Resource
 
                 Tables\Columns\TextColumn::make('estado.nombre')
                     ->label('estado')
-                    ->sortable()
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'pagado' => 'success',
@@ -77,7 +77,32 @@ class SellResource extends Resource
                     ->searchable(),
             ])
             ->filters([
-                //
+
+                  SelectFilter::make('concepto')
+                    ->label('Condepto')
+                    ->options([
+                        'suscripcion' => 'suscripcion',
+                        'renovacion' => 'renovacion',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->where('concepto', $data['value']);
+                        }
+                    }),
+
+                SelectFilter::make('estadov_id')
+                    ->label('Estado de Pago')
+                    ->options([
+                        1=> 'por pagar',
+                        2 => 'pagado',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->where('estadov_id', $data['value']);
+                        }
+                    })
+
+               
             ])
             ->actions([
                 Action::make('realizarPago')

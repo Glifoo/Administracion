@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
-
+use Swindon\FilamentHashids\Traits\HasHashid;
 
 class Suscripcion extends Model
 {
+     use HasHashid;
     protected $fillable = [
         'user_id',
         'paquete_id',

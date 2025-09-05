@@ -18,6 +18,8 @@ use Filament\Forms\Components\TextInput;
 use Carbon\CarbonImmutable as Carbon;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 
 class Register extends BaseRegister
 {
@@ -61,6 +63,7 @@ class Register extends BaseRegister
                         $this->getPasswordFormComponent(),
                         $this->getPasswordConfirmationFormComponent(),
                         $this->getLastMesesSuscripcion(),
+                        $this->getCostoFinalComponent(),
                     ])
                     ->statePath('data'),
             ),
@@ -94,10 +97,34 @@ class Register extends BaseRegister
             ->numeric()
             ->minValue(1)
             ->default(1)
-            ->required();
+            ->required()
+            ->live()
+            ->afterStateUpdated(fn($state, Set $set, Get $get) => $this->actualizarCostoFinal($set, $get));
     }
 
+    protected function getCostoFinalComponent(): Component
+    {
+        return TextInput::make('costo_final')
+            ->label(__('Costo Final'))
+            ->readOnly()
+            ->dehydrated(false); 
+    }
 
+    protected function actualizarCostoFinal(Set $set, Get $get): void
+    {
+        $paqueteId = $get('paquete_id');
+        $meses = (int) ($get('meses') ?? 1);
+        if ($paqueteId && $meses > 0) {
+            $paquete = Paquete::find($paqueteId);
+            if ($paquete) {
+                $total = $paquete->calcularPrecioFinal($meses);
+                $set('costo_final', 'Bs ' . number_format($total, 2));
+                return;
+            }
+        }
+
+        $set('costo_final', 'Bs 0.00');
+    }
     protected function getPhoneNumberFormComponent(): Component
     {
         return TextInput::make('phone')

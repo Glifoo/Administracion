@@ -2,11 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Mail\Renovacion;
 use App\Models\Renovation;
 use App\Models\Sell;
 use App\Models\User;
 use Livewire\Component;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class RenovacionForm extends Component
 {
@@ -16,7 +19,8 @@ class RenovacionForm extends Component
 
     public function mount()
     {
-        $this->suscripcion = auth()->user()->suscripcion;
+        $user = Auth::user();
+        $this->suscripcion = $user->suscripcion;
     }
 
     public function renovar()
@@ -43,14 +47,14 @@ class RenovacionForm extends Component
                 'concepto' => "renovacion",
             ]);
 
-            // $adminEmails = User::where('rol_id', 1)->pluck('email')->toArray();
-            // if (!empty($adminEmails)) {
-            //     Mail::to($adminEmails)->send(new Renovacion(
-            //         auth()->user(),
-            //         $this->suscripcion->paquete,
-            //         $this->meses
-            //     ));
-            // }
+            $adminEmails = User::where('rol_id', 1)->pluck('email')->toArray();
+            if (!empty($adminEmails)) {
+                Mail::to($adminEmails)->send(new Renovacion(
+                    Auth::user(),
+                    $this->suscripcion->paquete,
+                    $this->meses
+                ));
+            }
 
             Notification::make()
                 ->title('Su solicitud a sido enviada')
@@ -68,7 +72,7 @@ class RenovacionForm extends Component
 
     public function render()
     {        
-         $sus = auth()->user()->suscripcion;
+        $sus = Auth::user()->suscripcion;
         return view('livewire.renovacion-form', compact('sus'));
     }
 }

@@ -12,7 +12,12 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Forms\Components\Section;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+
+
 
 class UserResource extends Resource
 {
@@ -40,10 +45,12 @@ class UserResource extends Resource
                             ->maxLength(255),
                         Forms\Components\TextInput::make('email')
                             ->required()
+                            ->readOnly()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('phone')
                             ->tel()
                             ->required()
+                            ->readOnly()
                             ->unique(ignoreRecord: true)
                             ->maxLength(255),
 
@@ -54,7 +61,7 @@ class UserResource extends Resource
                             ->maxLength(255),
 
                         Forms\Components\Select::make('rol_id')
-                            ->relationship('rol', 'nombre')                           
+                            ->relationship('rol', 'nombre')
                             ->preload()
                             ->searchable(),
                     ]),
@@ -66,30 +73,49 @@ class UserResource extends Resource
         return $table
             ->columns([
                 tables\Columns\TextColumn::make('name')
-                    ->label('Nombre'),
+                    ->label('Nombre')
+                    ->sortable()
+                    ->searchable(),
 
                 tables\Columns\TextColumn::make('lastname')
-                    ->label('Apellido'),
+                    ->label('Apellido')
+                    ->sortable(),
 
                 tables\Columns\TextColumn::make('phone')
                     ->label('Celular'),
 
                 tables\Columns\TextColumn::make('email')
-                    ->label('Email'),
+                    ->label('Email')
+                    ->searchable(),
 
                 tables\Columns\TextColumn::make('rol.nombre')
                     ->label('Rol'),
             ])
             ->filters([
-                //
+                SelectFilter::make('Rol')
+                    ->label('Rol del usuario')
+                    ->options([
+                        '1' => 'Administrador General',
+                        '2' => 'Usuario',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->where('rol_id', $data['value']);
+                        }
+                    })
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->color('success'),
+
+                    ViewAction::make()
+                        ->label('Ver Cliente')
+                        ->color('primary'),
+                ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                Tables\Actions\BulkActionGroup::make([]),
             ]);
     }
 

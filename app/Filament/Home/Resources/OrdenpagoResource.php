@@ -19,6 +19,7 @@ use Filament\Tables\Actions\ViewAction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Blade;
 use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\Auth;
 
 class OrdenpagoResource extends Resource
 {
@@ -35,7 +36,7 @@ class OrdenpagoResource extends Resource
     {
         return parent::getEloquentQuery()
             ->whereHas('trabajo.cliente', function ($query) {
-                $query->where('usuario_id', auth()->id());
+                $query->where('usuario_id', Auth::user()->id);
             });
     }
     public static function form(Form $form): Form

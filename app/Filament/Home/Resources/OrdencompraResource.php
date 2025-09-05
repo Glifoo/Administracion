@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Filters\SelectFilter;
-
+use Illuminate\Support\Facades\Auth;
 
 class OrdencompraResource extends Resource
 {
@@ -33,7 +33,7 @@ class OrdencompraResource extends Resource
     {
         return parent::getEloquentQuery()
             ->whereHas('insumo.trabajo.cliente', function ($query) {
-                $query->where('usuario_id', auth()->id());
+                $query->where('usuario_id', Auth::user()->id);
             });
     }
     public static function form(Form $form): Form
@@ -81,7 +81,7 @@ class OrdencompraResource extends Resource
                     ->relationship(
                         'insumo.trabajo.cliente',
                         'nombre',
-                        fn(Builder $query) => $query->where('usuario_id', auth()->id())
+                        fn(Builder $query) => $query->where('usuario_id', Auth::user()->id)
                     )
                     ->searchable()
                     ->preload(),
@@ -91,7 +91,7 @@ class OrdencompraResource extends Resource
                     ->options(function () {
                         // Obtener los trabajos del usuario autenticado
                         return Trabajo::whereHas('cliente', function ($query) {
-                            $query->where('usuario_id', auth()->id());
+                            $query->where('usuario_id', Auth::user()->id);
                         })
                             ->pluck('trabajo', 'id')
                             ->toArray();
