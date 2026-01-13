@@ -24,6 +24,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\MenuItem;
 use Swindon\FilamentHashids\Middleware\FilamentHashidsMiddleware;
+use App\Http\Middleware\RedirectToProperPanelMiddleware;
 
 
 class HomePanelProvider extends PanelProvider
@@ -68,9 +69,9 @@ class HomePanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                RedirectToProperPanelMiddleware::class,
                 Checkfecha::class,
                 VerificarSuscripcionActiva::class,
-
             ]);
     }
 }

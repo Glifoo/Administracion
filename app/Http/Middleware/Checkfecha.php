@@ -26,7 +26,7 @@ class Checkfecha
     {
         $user = Auth::user();
 
-        if (!$user->suscripcion) {
+        if (!$user || !$user->suscripcion) {
 
             Auth::logout();
             return Redirect::route('inicio')->with('msj', 'sinsuscripcion');

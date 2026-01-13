@@ -29,6 +29,7 @@ class User extends Authenticatable implements FilamentUser
         'phone',
         'logo',
         'password',
+        'rol_id'
     ];
 
     /**
@@ -54,7 +55,6 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
     /**
-     * 
      * realciones
      */
     public function suscripcion()
@@ -86,6 +86,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->rol->nombre === $role;
     }
 
+    public function nombreRol(): string
+    {
+        return $this->rol?->nombre ?? 'Sin rol';
+    }
+
     public function admin(User $user): bool
     {
 
@@ -97,7 +102,6 @@ class User extends Authenticatable implements FilamentUser
     }
     public function verirol(User $user)
     {
-
         return $user->rol->nombre;
     }
 

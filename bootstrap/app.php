@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'suscripcion.activa' => \App\Http\Middleware\VerificarSuscripcionActiva::class,
             'Checkfecha' => \App\Http\Middleware\Checkfecha::class,
             'pago.owner' => \App\Http\Middleware\CheckPagoOwnership::class,
+            'RedirectToProperPanelMiddleware' => \App\Http\Middleware\RedirectToProperPanelMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
