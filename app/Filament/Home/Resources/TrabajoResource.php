@@ -28,7 +28,7 @@ class TrabajoResource extends Resource
 {
     protected static ?string $model = Trabajo::class;
     protected static ?string $navigationIcon = 'heroicon-c-wrench-screwdriver';
-    protected static ?string $navigationGroup = 'Datos de Usuarios';
+    protected static ?string $navigationGroup = 'Datos de Clientes';
     protected static ?string $navigationLabel = 'Trabajos';
     protected static ?int $navigationSort = 2;
 
