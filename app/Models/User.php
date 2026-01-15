@@ -71,7 +71,10 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->belongsTo(Rol::class);
     }
-
+    public function cuentasAhorro()
+    {
+        return $this->hasMany(Cuentahorro::class);
+    }
     /**
      * Funciones
      */

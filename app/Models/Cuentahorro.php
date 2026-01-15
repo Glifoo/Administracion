@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Swindon\FilamentHashids\Traits\HasHashid;
 
 class Cuentahorro extends Model
@@ -54,5 +55,13 @@ class Cuentahorro extends Model
     public function saldoActual(): float
     {
         return $this->saldo;
+    }
+
+    public static function optionsForAuthUser(): array
+    {
+        return Auth::user()
+            ->cuentasAhorro()              // relación definida en User
+            ->pluck('nombre', 'id')   // id => nombre
+            ->toArray();              // array plano para Filament
     }
 }

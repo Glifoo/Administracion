@@ -4,6 +4,7 @@ namespace App\Filament\Home\Resources;
 
 use App\Filament\Home\Resources\MovimientoahorroResource\Pages;
 use App\Filament\Home\Resources\MovimientoahorroResource\RelationManagers;
+use App\Models\Cuentahorro;
 use App\Models\Movimientoahorro;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
@@ -14,6 +15,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class MovimientoahorroResource extends Resource
 {
@@ -24,6 +26,13 @@ class MovimientoahorroResource extends Resource
     protected static ?string $navigationLabel = 'Transacciones';
     protected static ?string $modelLabel = 'Transacciones';
     protected static ?int $navigationSort = 1;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereHas('cuenta', function (Builder $query) {
+            $query->where('user_id', Auth::id());
+        });
+    }
 
     public static function form(Form $form): Form
     {
@@ -37,6 +46,14 @@ class MovimientoahorroResource extends Resource
                             ->relationship('cuenta', 'nombre')
                             ->searchable()
                             ->preload()
+                            ->required(),
+
+                        Select::make('cliente_id')
+                            ->label('Seleccione el cliente')
+                            ->searchable()
+                            ->helperText('Elija el nombre de uno de sus clientes.')
+                            ->preload()
+                            ->options(Cuentahorro::optionsForAuthUser())
                             ->required(),
 
                         Forms\Components\Select::make('tipo')
@@ -70,6 +87,10 @@ class MovimientoahorroResource extends Resource
     {
         return $table
             ->columns([
+
+                tables\Columns\TextColumn::make('tipo')
+                    ->label('Cuenta'),
+
                 tables\Columns\TextColumn::make('tipo')
                     ->label('tipo'),
 
