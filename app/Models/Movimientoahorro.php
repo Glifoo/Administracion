@@ -15,6 +15,6 @@ class Movimientoahorro extends Model
     ];
     public function cuenta()
     {
-        return $this->belongsTo(Cuentahorro::class);
+        return $this->belongsTo(Cuentahorro::class,'cuenta_ahorro_id');
     }
 }
