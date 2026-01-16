@@ -207,8 +207,8 @@ class TrabajoResource extends Resource
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'por cotizar'),
 
                     Tables\Actions\DeleteAction::make()
-                        ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'gray' : 'danger'),
-                    // ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
+                        ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'gray' : 'danger')
+                        ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
                 ])
             ])
             ->bulkActions([
