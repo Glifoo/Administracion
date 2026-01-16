@@ -41,8 +41,8 @@ class MovimientoahorroResource extends Resource
                 Section::make('Datos técnicos del Trabajos')
                     ->columns(3)
                     ->schema([
-                        Select::make('cliente_id')
-                            ->label('Seleccione el cliente')
+                        Select::make('cuenta_ahorro_id')
+                            ->label('Seleccione la cuenta')
                             ->searchable()
                             ->helperText('Elija el nombre de uno de sus clientes.')
                             ->preload()
