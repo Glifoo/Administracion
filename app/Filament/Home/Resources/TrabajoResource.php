@@ -171,6 +171,8 @@ class TrabajoResource extends Resource
                         }
                     })
             ])
+            ->persistFiltersInSession()
+
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make()

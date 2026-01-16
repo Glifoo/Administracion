@@ -118,6 +118,8 @@ class OrdencompraResource extends Resource
                         }
                     })
             ])
+            ->persistFiltersInSession()
+
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\Action::make('Pagar')
