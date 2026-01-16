@@ -19,6 +19,11 @@ class Cuentahorro extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function trabajo()
+    {
+        return $this->hasOne(CuentaTrabajo::class);
+    }
+    
     public function movimientos()
     {
         return $this->hasMany(MovimientoAhorro::class, 'cuenta_ahorro_id');

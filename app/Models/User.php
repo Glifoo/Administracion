@@ -73,7 +73,7 @@ class User extends Authenticatable implements FilamentUser
     }
     public function cuentasAhorro()
     {
-        return $this->hasMany(Cuentahorro::class);
+       return $this->hasMany(Cuentahorro::class, 'user_id');
     }
     /**
      * Funciones

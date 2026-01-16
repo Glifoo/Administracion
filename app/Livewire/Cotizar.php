@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Models\Cuentahorro;
+use App\Models\CuentaTrabajo;
 use App\Models\Insumo;
 use App\Models\Ordencompra;
 use App\Models\Ordenpago;
@@ -9,7 +11,7 @@ use App\Models\Trabajo;
 use Livewire\Component;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use Illuminate\Support\Facades\Auth;
 
 class Cotizar extends Component
 {
@@ -147,6 +149,7 @@ class Cotizar extends Component
     {
         $insumos = Insumo::where('trabajo_id', $this->identificador)->get();
         $trabajo = Trabajo::find($this->identificador);
+        $usuarioid = Auth::user()->id;
 
         $costoprod = $insumos->sum('costo');
         $parcial = $costoprod + $trabajo->manobra;
@@ -181,6 +184,21 @@ class Cotizar extends Component
             ]);
         }
         $trabajo->save();
+
+        $cuenta = null;
+
+        if ($trabajo->cuenta) {
+            $cuenta = Cuentahorro::create([
+                'nombre'   => 'Cuenta - ' . $trabajo->trabajo,
+                'user_id'  => $usuarioid,
+                'saldo'    => 0,
+            ]);
+
+            CuentaTrabajo::create([
+                'cuenta_id'  => $cuenta->id,
+                'trabajo_id' => $trabajo->id,
+            ]);
+        }
 
         $ordenPago = OrdenPago::create([
             'trabajo_id' => $trabajo->id,

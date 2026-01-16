@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Models\Cuentahorro;
+use App\Models\Movimientoahorro;
 use App\Models\Ordenpago;
 use App\Models\Pago;
 use App\Models\Trabajo;
@@ -72,10 +74,28 @@ class Realizarpago extends Component
             $this->ordenpago->saldo -= $this->pago;
 
             if ($this->ordenpago->saldo <= 0) {
-                $this->ordenpago->estado = 'cancelado'; // Asegúrate que este campo existe en tu modelo
+                $this->ordenpago->estado = 'cancelado'; 
             }
 
             $this->ordenpago->save();
+
+            if ($this->ordenpago->trabajo->cuenta) {
+
+                $cuenta = Cuentahorro::where('user_id', Auth::id())->first();
+
+                if (!$cuenta) {
+                    throw new \Exception('El usuario no tiene una cuenta de ahorro creada');
+                }
+
+                Movimientoahorro::create([
+                    'cuenta_ahorro_id' => $cuenta->id,
+                    'tipo'             => 'deposito',
+                    'monto'            => $this->pago,
+                    'fecha'            => $this->fecha,
+                    'concepto'         => 'Pago recibido - ' . $this->ordenpago->trabajo->trabajo,
+                ]);
+                $cuenta->increment('saldo', $this->pago);
+            }
 
             $this->pagos = Pago::where('ordenpago_id', $this->ordenpago->id)->get();
             $this->reset(['pago', 'confirmandoPago', 'montoConfirmacion']);

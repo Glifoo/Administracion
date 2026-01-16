@@ -22,6 +22,7 @@ class Trabajo extends Model
         'Costoproduccion',
         'Costofinal',
         'cliente_id',
+        'cuenta',
     ];
 
     /**
@@ -43,9 +44,13 @@ class Trabajo extends Model
     {
         return $this->hasMany(Insumo::class, 'trabajo_id');
     }
+    
+    public function cuenta()
+    {
+        return $this->hasOne(CuentaTrabajo::class);
+    }
     /**
      * 
      * Metodos
      */
-    
 }
