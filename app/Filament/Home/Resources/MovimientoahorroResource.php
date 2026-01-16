@@ -81,11 +81,8 @@ class MovimientoahorroResource extends Resource
         return $table
             ->columns([
 
-                tables\Columns\TextColumn::make('tipo')
-                    ->label('Cuenta'),
-
-                tables\Columns\TextColumn::make('tipo')
-                    ->label('tipo'),
+                tables\Columns\TextColumn::make('cuenta.nombre')
+                    ->label('Nombre cuenta'),
 
                 tables\Columns\TextColumn::make('monto')
                     ->label('Monto'),
@@ -93,13 +90,33 @@ class MovimientoahorroResource extends Resource
                 tables\Columns\TextColumn::make('concepto')
                     ->label('Concepto'),
 
+                tables\Columns\TextColumn::make('tipo')
+                    ->label('Cuenta'),
+
                 tables\Columns\TextColumn::make('fecha')
                     ->date('d/m/Y')
                     ->label('fecha'),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('tipo')
+                    ->label('Tipo de movimiento')
+                    ->options(
+                        [
+                            'deposito' => 'Depósito',
+                            'retiro' => 'Retiro',
+                        ]
+                    ),
+
+                Tables\Filters\SelectFilter::make('cuenta_ahorro_id')
+                    ->label('Cuenta de ahorro')
+                    ->options(fn() => Cuentahorro::where('user_id', Auth::id())
+                        ->pluck('nombre', 'id')
+                        ->toArray()),
+
             ])
+            ->persistFiltersInSession()
+
+
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
