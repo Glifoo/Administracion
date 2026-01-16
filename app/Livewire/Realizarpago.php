@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Cuentahorro;
+use App\Models\CuentaTrabajo;
 use App\Models\Movimientoahorro;
 use App\Models\Ordenpago;
 use App\Models\Pago;
@@ -81,7 +82,7 @@ class Realizarpago extends Component
 
             if ($this->ordenpago->trabajo->cuenta) {
 
-                $cuenta = Cuentahorro::where('user_id', Auth::id())->first();
+               $cuenta = CuentaTrabajo::where('trabajo_id', $this->ordenpago->trabajo->id)->first()?->cuenta;
 
                 if (!$cuenta) {
                     throw new \Exception('El usuario no tiene una cuenta de ahorro creada');

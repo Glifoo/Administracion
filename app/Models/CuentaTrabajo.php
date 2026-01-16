@@ -13,11 +13,10 @@ class CuentaTrabajo extends Model
 
     public function cuenta()
     {
-        return $this->belongsTo(Cuentahorro::class);
+        return $this->belongsTo(Cuentahorro::class, 'cuenta_id');
     }
-
     public function trabajo()
     {
-        return $this->belongsTo(Trabajo::class);
+        return $this->belongsTo(Trabajo::class, 'trabajo_id');
     }
 }
