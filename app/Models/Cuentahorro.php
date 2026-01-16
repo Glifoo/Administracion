@@ -26,7 +26,7 @@ class Cuentahorro extends Model
     
     public function movimientos()
     {
-        return $this->hasMany(movimientoAhorro::class, 'cuenta_ahorro_id');
+        return $this->hasMany(Movimientoahorro::class, 'cuenta_ahorro_id');
     }
 
     public function depositar(float $monto, string $concepto = null): void
