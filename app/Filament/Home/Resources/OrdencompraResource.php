@@ -5,6 +5,7 @@ namespace App\Filament\Home\Resources;
 use App\Filament\Home\Resources\OrdencompraResource\Pages;
 use App\Filament\Home\Resources\OrdencompraResource\Pages\PagoInsumo;
 use App\Filament\Home\Resources\OrdencompraResource\RelationManagers;
+use App\Models\Client;
 use App\Models\Ordencompra;
 use App\Models\Trabajo;
 use Filament\Forms;
@@ -17,6 +18,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Get;
 
 class OrdencompraResource extends Resource
 {
@@ -76,34 +80,52 @@ class OrdencompraResource extends Resource
                     ->searchable(),
             ])
             ->filters([
-                SelectFilter::make('cliente')
-                    ->label('Filtrar por Cliente')
-                    ->relationship(
-                        'insumo.trabajo.cliente',
-                        'nombre',
-                        fn(Builder $query) => $query->where('usuario_id', Auth::user()->id)
-                    )
-                    ->searchable()
-                    ->preload(),
+                Filter::make('cliente_trabajo')
+                    ->form([
+                        Select::make('cliente_id')
+                            ->label('Cliente')
+                            ->options(function () {
+                                return Client::where('usuario_id', Auth::user()->id)
+                                    ->pluck('nombre', 'id');
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->live(),
 
-                SelectFilter::make('trabajo')
-                    ->label('Filtrar por Trabajo')
-                    ->options(function () {
-                        // Obtener los trabajos del usuario autenticado
-                        return Trabajo::whereHas('cliente', function ($query) {
-                            $query->where('usuario_id', Auth::user()->id);
-                        })
-                            ->pluck('trabajo', 'id')
-                            ->toArray();
-                    })
-                    ->searchable()
-                    ->preload()
+                        Select::make('trabajo_id')
+                            ->label('Trabajo')
+                            ->options(function (Get $get) {
+                                $clienteId = $get('cliente_id');
+                                if (!$clienteId) {
+                                    return [];
+                                }
+                                return \App\Models\Trabajo::query()
+                                    ->where('cliente_id', $clienteId)
+                                    ->orderBy('trabajo')
+                                    ->pluck('trabajo', 'id');
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->disabled(fn(Get $get) => ! $get('cliente_id')),
+                    ])
                     ->query(function (Builder $query, array $data) {
-                        if (!empty($data['value'])) {
-                            $query->whereHas('insumo.trabajo', function ($subQuery) use ($data) {
-                                $subQuery->where('id', $data['value']);
+                        return $query
+                            ->when($data['cliente_id'], function ($query, $clienteId) {
+                                $query->whereHas('insumo.trabajo', fn($q) => $q->where('cliente_id', $clienteId));
+                            })
+                            ->when($data['trabajo_id'], function ($query, $trabajoId) {
+                                $query->whereHas('insumo', fn($q) => $q->where('trabajo_id', $trabajoId));
                             });
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['cliente_id'] ?? null) {
+                            $indicators[] = 'Cliente: ' . Client::find($data['cliente_id'])?->nombre;
                         }
+                        if ($data['trabajo_id'] ?? null) {
+                            $indicators[] = 'Trabajo: ' . \App\Models\Trabajo::find($data['trabajo_id'])?->trabajo;
+                        }
+                        return $indicators;
                     }),
 
                 SelectFilter::make('estado')
