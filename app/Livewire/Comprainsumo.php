@@ -2,13 +2,15 @@
 
 namespace App\Livewire;
 
+use App\Models\Cuentahorro;
+use App\Models\CuentaTrabajo;
 use App\Models\Ordencompra;
 use App\Models\Pagoinsumo;
 use App\Models\Trabajo;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Filament\Notifications\Notification;
-
+use Illuminate\Support\Facades\Auth;
 
 class Comprainsumo extends Component
 {
@@ -84,6 +86,27 @@ class Comprainsumo extends Component
             }
 
             $this->ordencompra->save();
+
+            if ($this->ordencompra->cuenta) {
+
+                $cuenta = CuentaTrabajo::where('trabajo_id', $this->ordencompra->insumo->trabajo->id)->first()?->cuenta;
+
+                if (! $cuenta) {
+                    throw new \Exception('El usuario no tiene una cuenta de ahorro creada.');
+                }
+                $cuenta->movimientos()
+                    ->create([
+                        'tipo' => 'retiro',
+                        'monto' => $this->pago,
+                        'fecha' => $this->fecha,
+                        'concepto' => 'Pago de insumo - Orden #' . $this->ordencompra->id,
+                    ]);
+                if ($cuenta->saldo >= $this->pago) {
+                    $cuenta->decrement('saldo', $this->pago);
+                } else {
+                    throw new \Exception('Saldo insuficiente en la cuenta de ahorro.');
+                }
+            }
 
             $this->pagos = Pagoinsumo::where('ordencompra_id', $this->ordencompra->id)->get();
             $this->reset(['pago', 'confirmandoPago', 'montoConfirmacion']);
