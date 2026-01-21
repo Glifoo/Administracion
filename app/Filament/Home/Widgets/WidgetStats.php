@@ -97,7 +97,7 @@ class WidgetStats extends BaseWidget
                 ->color('danger')
                 ->url(route('filament.home.resources.ordenpagos.index')),
 
-            Stat::make('Tottal en cuentas', $saldoTotal)
+            Stat::make('Total en cuentas', $saldoTotal)
                 ->icon('heroicon-o-banknotes')
                 ->color('info'),
         ];
