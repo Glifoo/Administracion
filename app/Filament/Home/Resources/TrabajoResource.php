@@ -97,8 +97,8 @@ class TrabajoResource extends Resource
                             ->default(0.00),
 
                         Forms\Components\Toggle::make('cuenta')
-                            ->label('¿Este trabajo sera una cuenta nueva?')
-                            ->default(false),
+                            ->label('Crear una cuenta nueva para el trabajo')
+                            ->default(true),
                     ]),
                 Section::make('Descripcion')
                     ->columns(1)

@@ -22,6 +22,7 @@ class Comprainsumo extends Component
 
     public $confirmandoPago = false;
     public $montoConfirmacion;
+    public ?int $cuentaSeleccionada = null;
 
     public function mount(int $identificador): void
     {
@@ -35,7 +36,7 @@ class Comprainsumo extends Component
             !$this->ordencompra->insumo ||
             !$this->ordencompra->insumo->trabajo ||
             !$this->ordencompra->insumo->trabajo->cliente ||
-            $this->ordencompra->insumo->trabajo->cliente->usuario_id !== auth()->id()
+            $this->ordencompra->insumo->trabajo->cliente->usuario_id !== Auth::user()->id
         ) {
             abort(403, 'Acceso no autorizado a este pago.');
         }
@@ -58,6 +59,10 @@ class Comprainsumo extends Component
                 'max:' . $this->ordencompra->saldo
             ],
             'fecha' => ['required', 'date'],
+            'cuentaSeleccionada' => [
+                'required',
+                'exists:cuentahorros,id'
+            ],
         ];
     }
 
@@ -72,52 +77,61 @@ class Comprainsumo extends Component
     public function registrarPago()
     {
         DB::transaction(function () {
-            // Crear el nuevo pago
+            // Buscar la cuenta seleccionada
+            $cuenta = Cuentahorro::where('user_id', Auth::id())
+                ->where('id', $this->cuentaSeleccionada)
+                ->first();
+
+            if (! $cuenta) {
+                Notification::make()
+                    ->title('Cuenta no encontrada')
+                    ->danger()
+                    ->body('Seleccione una cuenta válida para realizar el pago.')
+                    ->send();
+                return;
+            }
+
+            if ($cuenta->saldo < $this->pago) {
+                Notification::make()
+                    ->title('Saldo insuficiente')
+                    ->danger()
+                    ->body('La cuenta seleccionada no tiene fondos suficientes.')
+                    ->send();
+                return;
+            }
+
+            // Registrar movimiento en la cuenta seleccionada
+            $cuenta->movimientos()->create([
+                'tipo'     => 'retiro',
+                'monto'    => $this->pago,
+                'fecha'    => $this->fecha,
+                'concepto' => 'Pago de insumo - Orden #' . $this->ordencompra->insumo->nombre,
+            ]);
+            $cuenta->decrement('saldo', $this->pago);
+
+            // Registrar el pago del insumo
             Pagoinsumo::create([
                 'ordencompra_id' => $this->ordencompra->id,
-                'pago' => $this->pago,
-                'fecha' => $this->fecha
+                'pago'           => $this->pago,
+                'fecha'          => $this->fecha,
             ]);
 
+            // Actualizar saldo de la orden
             $this->ordencompra->saldo -= $this->pago;
-
             if ($this->ordencompra->saldo <= 0) {
-                $this->ordencompra->estado = 'cancelado'; // Asegúrate que este campo existe en tu modelo
+                $this->ordencompra->estado = 'cancelado';
             }
-
             $this->ordencompra->save();
 
-            if ($this->ordencompra->cuenta) {
-
-                $cuenta = CuentaTrabajo::where('trabajo_id', $this->ordencompra->insumo->trabajo->id)->first()?->cuenta;
-
-                if (! $cuenta) {
-                    throw new \Exception('El usuario no tiene una cuenta de ahorro creada.');
-                }
-                $cuenta->movimientos()
-                    ->create([
-                        'tipo' => 'retiro',
-                        'monto' => $this->pago,
-                        'fecha' => $this->fecha,
-                        'concepto' => 'Pago de insumo - Orden #' . $this->ordencompra->id,
-                    ]);
-                if ($cuenta->saldo >= $this->pago) {
-                    $cuenta->decrement('saldo', $this->pago);
-                } else {
-                    throw new \Exception('Saldo insuficiente en la cuenta de ahorro.');
-                }
-            }
-
+            // Refrescar pagos
             $this->pagos = Pagoinsumo::where('ordencompra_id', $this->ordencompra->id)->get();
-            $this->reset(['pago', 'confirmandoPago', 'montoConfirmacion']);
+            $this->reset(['pago', 'confirmandoPago', 'montoConfirmacion', 'cuentaSeleccionada']);
             $this->fecha = now()->format('Y-m-d');
 
-            Notification::make()
-                ->title('Pago realizado')
-                ->success()
-                ->send();
+            Notification::make()->title('Pago realizado')->success()->send();
         });
     }
+
 
     public function render()
     {

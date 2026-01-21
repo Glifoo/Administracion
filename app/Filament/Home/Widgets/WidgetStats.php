@@ -3,6 +3,7 @@
 namespace App\Filament\Home\Widgets;
 
 use App\Models\Client;
+use App\Models\Cuentahorro;
 use App\Models\Ordenpago;
 use App\Models\Suscripcion;
 use App\Models\Trabajo;
@@ -33,7 +34,7 @@ class WidgetStats extends BaseWidget
                 $descripcionTiempo = 'La suscripción ya terminó';
             } else {
                 $diff = $hoy->diff($fin);
-                $mesesRestantes = $diff->m + ($diff->y * 12); 
+                $mesesRestantes = $diff->m + ($diff->y * 12);
                 $diasRestantes = $diff->d;
                 $tiempoRestante = "{$mesesRestantes} mes(es) y {$diasRestantes} día(s)";
                 $descripcionTiempo = "Restan {$mesesRestantes} mes(es) y {$diasRestantes} día(s) de suscripción";
@@ -61,7 +62,12 @@ class WidgetStats extends BaseWidget
             })->sum('saldo'),
             2
         );
+        $totalCuentas = Cuentahorro::where('user_id', $userId)->count();
 
+        $saldoTotal = number_format(
+            Cuentahorro::where('user_id', $userId)->sum('saldo'),
+            2
+        );
         return [
             Stat::make('Tiempo de suscripción', $tiempoRestante ?? 'Sin datos')
                 ->description($descripcionTiempo ?? '')
@@ -90,6 +96,10 @@ class WidgetStats extends BaseWidget
                 ->icon('heroicon-o-exclamation-circle')
                 ->color('danger')
                 ->url(route('filament.home.resources.ordenpagos.index')),
+
+            Stat::make('Tottal en cuentas', $saldoTotal)
+                ->icon('heroicon-o-banknotes')
+                ->color('info'),
         ];
     }
 }
