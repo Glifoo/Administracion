@@ -3,6 +3,7 @@
 namespace App\Filament\Home\Resources;
 
 use App\Filament\Home\Resources\CuentahorroResource\Pages;
+use App\Filament\Home\Resources\CuentahorroResource\Pages\TranferenciaCuenta;
 use App\Filament\Home\Resources\CuentahorroResource\RelationManagers;
 use App\Models\Cuentahorro;
 use Filament\Forms;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Section;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Actions\Action;
 
 class CuentahorroResource extends Resource
 {
@@ -71,9 +73,19 @@ class CuentahorroResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
+                    ViewAction::make()
+                        ->color('primary'),
+
+                    Tables\Actions\EditAction::make()
+                        ->color('warning'),
+
                     Tables\Actions\DeleteAction::make(),
+
+                    Action::make('transferencia')
+                        ->label('Transferir entre cuentas')
+                        ->icon('heroicon-o-arrow-right')
+                        ->color('success')
+                        ->url(fn(Cuentahorro $record): string => route('filament.home.resources.cuentahorros.transferencia', ['record' => $record])),
                 ])
             ])
             ->bulkActions([
@@ -96,6 +108,7 @@ class CuentahorroResource extends Resource
             'index' => Pages\ListCuentahorros::route('/'),
             'create' => Pages\CreateCuentahorro::route('/create'),
             'edit' => Pages\EditCuentahorro::route('/{record}/edit'),
+            'transferencia' => TranferenciaCuenta::route('/{record}/transferencia'),
         ];
     }
 }

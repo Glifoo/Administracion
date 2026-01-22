@@ -16,6 +16,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ViewAction;
 
 class MovimientoahorroResource extends Resource
 {
@@ -91,7 +93,7 @@ class MovimientoahorroResource extends Resource
                     ->label('Concepto'),
 
                 tables\Columns\TextColumn::make('tipo')
-                    ->label('Cuenta'),
+                    ->label('Tipo'),
 
                 tables\Columns\TextColumn::make('fecha')
                     ->date('d/m/Y')
@@ -104,6 +106,7 @@ class MovimientoahorroResource extends Resource
                         [
                             'deposito' => 'Depósito',
                             'retiro' => 'Retiro',
+                            'transferencia' => 'Transferencia',
                         ]
                     ),
 
@@ -118,7 +121,11 @@ class MovimientoahorroResource extends Resource
 
 
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->color('primary'),
+                ])
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -139,7 +146,6 @@ class MovimientoahorroResource extends Resource
         return [
             'index' => Pages\ListMovimientoahorros::route('/'),
             'create' => Pages\CreateMovimientoahorro::route('/create'),
-            'edit' => Pages\EditMovimientoahorro::route('/{record}/edit'),
         ];
     }
 }
