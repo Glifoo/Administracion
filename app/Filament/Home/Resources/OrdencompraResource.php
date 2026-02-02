@@ -56,6 +56,10 @@ class OrdencompraResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->label('Cliente'),
 
+                tables\Columns\TextColumn::make('insumo.trabajo.cliente.nombre')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->label('Nombre Cliente'),
+
                 tables\Columns\TextColumn::make('insumo.trabajo.trabajo')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->label('Nombre trabajo'),
