@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Movimientoahorro extends Model
 {
+    
     protected $fillable = [
         'cuenta_ahorro_id',
         'tipo',

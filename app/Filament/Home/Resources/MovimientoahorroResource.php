@@ -32,7 +32,7 @@ class MovimientoahorroResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->whereHas('cuenta', function (Builder $query) {
-            $query->where('user_id', Auth::id());
+            $query->withTrashed()->where('user_id', Auth::id());
         });
     }
 
@@ -83,8 +83,10 @@ class MovimientoahorroResource extends Resource
         return $table
             ->columns([
 
-                tables\Columns\TextColumn::make('cuenta.nombre')
-                    ->label('Nombre cuenta'),
+                Tables\Columns\TextColumn::make('cuenta.nombre')
+                    ->label('Nombre cuenta')
+                    ->getStateUsing(fn($record) => $record->cuenta?->nombre ?? 'Cuenta eliminada'),
+
 
                 tables\Columns\TextColumn::make('monto')
                     ->label('Monto'),
@@ -129,7 +131,7 @@ class MovimientoahorroResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    
                 ]),
             ]);
     }

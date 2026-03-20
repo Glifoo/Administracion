@@ -3,17 +3,38 @@
 namespace App\Filament\Home\Resources\MovimientoahorroResource\Pages;
 
 use App\Filament\Home\Resources\MovimientoahorroResource;
+use App\Models\Cuentahorro;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateMovimientoahorro extends CreateRecord
 {
     protected static string $resource = MovimientoahorroResource::class;
-    
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $cuenta = Cuentahorro::find($data['cuenta_ahorro_id']);
+
+        if ($data['tipo'] === 'retiro' && $cuenta->saldo < $data['monto']) {
+            Notification::make()
+                ->title('Límite alcanzado')
+                ->body("Saldo insuficiente en la cuenta de ahorro. Saldo actual: {$cuenta->saldo}")
+                ->danger()
+                ->persistent()
+                ->send();
+
+            $this->halt();
+        }
+
+        return $data;
+    }
+
     protected function afterCreate(): void
     {
         $movimiento = $this->record;
@@ -24,11 +45,8 @@ class CreateMovimientoahorro extends CreateRecord
         }
 
         if ($movimiento->tipo === 'retiro') {
-            if ($cuenta->saldo >= $movimiento->monto) {
-                $cuenta->decrement('saldo', $movimiento->monto);
-            } else {
-                throw new \Exception('Saldo insuficiente en la cuenta de ahorro.');
-            }
+            // Aquí ya sabemos que el saldo era suficiente
+            $cuenta->decrement('saldo', $movimiento->monto);
         }
     }
 }

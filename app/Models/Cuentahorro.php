@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 use Swindon\FilamentHashids\Traits\HasHashid;
 
 class Cuentahorro extends Model
 {
     use HasHashid;
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id',
         'nombre',
