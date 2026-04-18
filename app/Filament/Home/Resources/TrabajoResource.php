@@ -125,7 +125,8 @@ class TrabajoResource extends Resource
 
                 tables\Columns\TextColumn::make('cantidad')
                     ->numeric()
-                    ->label('Cantidad'),
+                    ->label('Cantidad')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 tables\Columns\TextColumn::make('Costoproduccion')
                     ->label('Costo de producción')
@@ -135,9 +136,13 @@ class TrabajoResource extends Resource
                     ->label('Ganancia')
                     ->searchable(),
 
-                    tables\Columns\TextColumn::make('ivaefectivo')
+                tables\Columns\TextColumn::make('ivaefectivo')
                     ->numeric()
                     ->label('Factura'),
+
+                tables\Columns\TextColumn::make('Costofinal')
+                    ->label('Costo final')
+                    ->searchable(),
 
                 tables\Columns\TextColumn::make('estado')
                     ->label('Estado')
@@ -149,13 +154,10 @@ class TrabajoResource extends Resource
                     })
                     ->searchable(),
 
-                tables\Columns\TextColumn::make('Costofinal')
-                    ->label('Costo final')
-                    ->searchable(),
-
                 tables\Columns\TextColumn::make('created_at')
                     ->date('d/m/Y')
-                    ->label('fecha'),
+                    ->label('fecha')
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('cliente')

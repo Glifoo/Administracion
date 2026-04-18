@@ -234,6 +234,20 @@
                         <span class="text-gray-950 dark:text-white">${{ number_format($costoprod, 2) }}</span>
                     </div>
                 </div>
+
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg dark:bg-gray-800 mb-4">
+                    <div class="flex justify-between items-center mt-2 text-lg font-bold">
+                        <span class="text-gray-950 dark:text-white">Pago factura:</span>
+                        <span class="text-gray-950 dark:text-white">${{ number_format($ivaefec, 2) }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg dark:bg-gray-800 mb-4">
+                    <div class="flex justify-between items-center mt-2 text-lg font-bold">
+                        <span class="text-gray-950 dark:text-white">ganancia final:</span>
+                        <span class="text-gray-950 dark:text-white">${{ number_format($gananciafinal, 2) }}</span>
+                    </div>
+                </div>
             </div>
 
             <div class="mt-4 p-4 bg-gray-50 rounded-lg dark:bg-gray-800">

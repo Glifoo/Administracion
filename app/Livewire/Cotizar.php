@@ -166,10 +166,12 @@ class Cotizar extends Component
         }
 
         if ($iva > 0) {
+            $gananciaefec=$total - $costoprod - $iva;
+            $ivaefec=$total*$trabajo->iva / 100;
             $trabajo->update([
                 'estado' => 'cotizado',
-                'gananciaefectivo' => $ganancia,
-                'ivaefectivo' => $iva ?? 0,
+                'gananciaefectivo' => $gananciaefec,
+                'ivaefectivo' => $ivaefec ?? 0,
                 'Costofactura' => $total,
                 'Costoproduccion' => $costoprod,
                 'Costofinal' => $total,
@@ -243,6 +245,8 @@ class Cotizar extends Component
         } else {
             $total = $totalconganancia + $ganancia;
         }
-        return view('livewire.cotizar', compact('insumos', 'total', 'costoprod', 'idtrabajo'));
+         $ivaefec=$total*$trabajo->iva / 100;
+         $gananciafinal=$total - $costoprod - $ivaefec;
+        return view('livewire.cotizar', compact('insumos', 'total', 'costoprod', 'idtrabajo', 'ivaefec', 'gananciafinal'));
     }
 }
