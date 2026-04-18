@@ -135,6 +135,10 @@ class TrabajoResource extends Resource
                     ->label('Ganancia')
                     ->searchable(),
 
+                    tables\Columns\TextColumn::make('ivaefectivo')
+                    ->numeric()
+                    ->label('Factura'),
+
                 tables\Columns\TextColumn::make('estado')
                     ->label('Estado')
                     ->badge()
@@ -148,6 +152,10 @@ class TrabajoResource extends Resource
                 tables\Columns\TextColumn::make('Costofinal')
                     ->label('Costo final')
                     ->searchable(),
+
+                tables\Columns\TextColumn::make('created_at')
+                    ->date('d/m/Y')
+                    ->label('fecha'),
             ])
             ->filters([
                 SelectFilter::make('cliente')
@@ -209,6 +217,8 @@ class TrabajoResource extends Resource
                     Tables\Actions\DeleteAction::make()
                         ->color(fn(Trabajo $record): string => $record->estado === 'cotizado' ? 'gray' : 'danger')
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
+
+
                 ])
             ])
             ->bulkActions([
