@@ -152,39 +152,39 @@ class Cotizar extends Component
         $usuarioid = Auth::user()->id;
 
         $costoprod = $insumos->sum('costo');
-        $parcial = $costoprod + $trabajo->manobra;
+        // Sumamos insumos + mano de obra para tener el costo base total
+        $costoBaseTotal = $costoprod + $trabajo->manobra;
 
-        $ganancia = $parcial * $trabajo->ganancia / 100;
-        $totalconganancia = $costoprod + $ganancia;
+        // 1. Calcular el Precio Neto (Costo + Ganancia Deseada)
+        // Usamos división para que el margen sea sobre el precio de venta neto
+        $porcentajeGanancia = $trabajo->ganancia / 100;
+        $precioNeto = ($porcentajeGanancia < 1) ? ($costoBaseTotal / (1 - $porcentajeGanancia)) : ($costoBaseTotal * (1 + $porcentajeGanancia));
 
+        // 2. Calcular el Precio Final de Factura (Incluyendo Impuestos de Bolivia)
         if ($trabajo->iva > 0) {
-            $iva = $totalconganancia * $trabajo->iva / 100;
-            $total = $totalconganancia   + $iva;
+            $porcentajeImpuesto = $trabajo->iva / 100;
+            // Fórmula de Tasa Efectiva: Dividir entre (1 - tasa) para que el impuesto 
+            // calculado sobre el total sea exacto.
+            $total = $precioNeto / (1 - $porcentajeImpuesto);
+            $ivaefec = $total * $porcentajeImpuesto; // Esto es lo que pagarás al estado
         } else {
-            $total = $totalconganancia + $ganancia;
-            $iva = 0;
+            $total = $precioNeto;
+            $ivaefec = 0;
         }
 
-        if ($iva > 0) {
-            $gananciaefec=$total - $costoprod - $iva;
-            $ivaefec=$total*$trabajo->iva / 100;
-            $trabajo->update([
-                'estado' => 'cotizado',
-                'gananciaefectivo' => $gananciaefec,
-                'ivaefectivo' => $ivaefec ?? 0,
-                'Costofactura' => $total,
-                'Costoproduccion' => $costoprod,
-                'Costofinal' => $total,
-            ]);
-        } else {
-            $trabajo->update([
-                'estado' => 'cotizado',
-                'gananciaefectivo' => $ganancia,
-                'ivaefectivo' => $iva ?? 0,
-                'Costoproduccion' => $costoprod,
-                'Costofinal' => $total,
-            ]);
-        }
+        // 3. Ganancia Real (Lo que queda tras pagar costos e impuestos del total)
+        $gananciaefec = $total - $costoBaseTotal - $ivaefec;
+
+        // Actualización del modelo
+        $trabajo->update([
+            'estado' => 'cotizado',
+            'gananciaefectivo' => $gananciaefec,
+            'ivaefectivo' => $ivaefec,
+            'Costofactura' => $total, // Asegúrate de tener este campo en fillable si lo usas
+            'Costoproduccion' => $costoBaseTotal,
+            'Costofinal' => $total,
+        ]);
+
         $trabajo->save();
 
         $cuenta = null;
@@ -233,20 +233,36 @@ class Cotizar extends Component
         $trabajo = Trabajo::find($this->identificador);
         $idtrabajo = $trabajo->id;
 
-        $costoprod = $insumos->sum('costo');
-        $parcial = $costoprod + $trabajo->manobra;
+        // 1. Costo Base (Insumos + Mano de Obra)
+        $costoprod = $insumos->sum('costo') + $trabajo->manobra;
 
-        $ganancia = $parcial * $trabajo->ganancia / 100;
-        $totalconganancia = $costoprod + $ganancia;
+        // 2. Cálculo del Precio Neto (Ganancia sobre venta)
+        $porcentajeGanancia = $trabajo->ganancia / 100;
+        // Evitamos división por cero si la ganancia es 100%
+        $divisorGanancia = (1 - $porcentajeGanancia) > 0 ? (1 - $porcentajeGanancia) : 0.01;
+        $precioNeto = $costoprod / $divisorGanancia;
 
+        // 3. Cálculo del Total con Impuestos (Tasa Efectiva)
         if ($trabajo->iva > 0) {
-            $iva = $totalconganancia * $trabajo->iva / 100;
-            $total = $totalconganancia   + $iva;
+            $porcentajeImpuesto = $trabajo->iva / 100;
+            $divisorImpuesto = (1 - $porcentajeImpuesto) > 0 ? (1 - $porcentajeImpuesto) : 0.01;
+            $total = $precioNeto / $divisorImpuesto;
+            $ivaefec = $total * $porcentajeImpuesto;
         } else {
-            $total = $totalconganancia + $ganancia;
+            $total = $precioNeto;
+            $ivaefec = 0;
         }
-         $ivaefec=$total*$trabajo->iva / 100;
-         $gananciafinal=$total - $costoprod - $ivaefec;
-        return view('livewire.cotizar', compact('insumos', 'total', 'costoprod', 'idtrabajo', 'ivaefec', 'gananciafinal'));
+
+        // 4. Ganancia Real Final (Lo que queda en bolsillo)
+        $gananciafinal = $total - $costoprod - $ivaefec;
+
+        return view('livewire.cotizar', [
+            'insumos' => $insumos,
+            'total' => $total,
+            'costoprod' => $costoprod,
+            'idtrabajo' => $idtrabajo,
+            'ivaefec' => $ivaefec,
+            'gananciafinal' => $gananciafinal
+        ]);
     }
 }
