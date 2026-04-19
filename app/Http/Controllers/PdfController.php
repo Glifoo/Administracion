@@ -51,16 +51,21 @@ class PdfController extends Controller
         $costoprod = Insumo::where('trabajo_id',  $trabajo->id)->sum('costo');
         $parcial = $costoprod + $trabajo->manobra;
 
-        $ganancia = $parcial * $trabajo->ganancia / 100;
-        $totalconganancia = $costoprod + $ganancia;
+        $porcentajeGanancia = $trabajo->ganancia / 100;
+        // Evitamos división por cero si la ganancia es 100%
+        $divisorGanancia = (1 - $porcentajeGanancia) > 0 ? (1 - $porcentajeGanancia) : 0.01;
+        $precioNeto = $costoprod / $divisorGanancia;
 
         if ($trabajo->iva > 0) {
-            $iva = $totalconganancia * $trabajo->iva / 100;
-            $total = $totalconganancia   + $iva;
+            $porcentajeImpuesto = $trabajo->iva / 100;
+            $divisorImpuesto = (1 - $porcentajeImpuesto) > 0 ? (1 - $porcentajeImpuesto) : 0.01;
+            $total = $precioNeto / $divisorImpuesto;
+            $ivaefec = $total * $porcentajeImpuesto;
         } else {
-            $total = $totalconganancia + $ganancia;
-            $iva = 0;
+            $total = $precioNeto;
+            $ivaefec = 0;
         }
+
         $preciounitario = $total / $trabajo->cantidad;
         $totalEnLetras = $this->montoEnLetras($total);
 
@@ -101,16 +106,21 @@ class PdfController extends Controller
         $costoprod = Insumo::where('trabajo_id',  $trabajo->id)->sum('costo');
         $parcial = $costoprod + $trabajo->manobra;
 
-        $ganancia = $parcial * $trabajo->ganancia / 100;
-        $totalconganancia = $costoprod + $ganancia;
+         $porcentajeGanancia = $trabajo->ganancia / 100;
+
+        $divisorGanancia = (1 - $porcentajeGanancia) > 0 ? (1 - $porcentajeGanancia) : 0.01;
+        $precioNeto = $costoprod / $divisorGanancia;
 
         if ($trabajo->iva > 0) {
-            $iva = $totalconganancia * $trabajo->iva / 100;
-            $total = $totalconganancia   + $iva;
+            $porcentajeImpuesto = $trabajo->iva / 100;
+            $divisorImpuesto = (1 - $porcentajeImpuesto) > 0 ? (1 - $porcentajeImpuesto) : 0.01;
+            $total = $precioNeto / $divisorImpuesto;
+            $ivaefec = $total * $porcentajeImpuesto;
         } else {
-            $total = $totalconganancia + $ganancia;
-            $iva = 0;
+            $total = $precioNeto;
+            $ivaefec = 0;
         }
+
         $preciounitario = $total / $trabajo->cantidad;
         $totalEnLetras = $this->montoEnLetras($total);
 
