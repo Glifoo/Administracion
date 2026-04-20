@@ -100,11 +100,15 @@ class OrdencompraResource extends Resource
                             ->label('Trabajo')
                             ->options(function (Get $get) {
                                 $clienteId = $get('cliente_id');
-                                if (!$clienteId) {
-                                    return [];
-                                }
+                                if (!$clienteId) return [];
+
                                 return \App\Models\Trabajo::query()
                                     ->where('cliente_id', $clienteId)
+                                    // Filtramos trabajos que tengan insumos con órdenes de compra pendientes
+                                    ->whereHas('insumos.ordenescompra', function ($query) {
+                                        // $query->where('saldo', '>', 0);
+                                        $query->where('estado', 'Por pagar');
+                                    })
                                     ->orderBy('trabajo')
                                     ->pluck('trabajo', 'id');
                             })
@@ -151,10 +155,7 @@ class OrdencompraResource extends Resource
                     Tables\Actions\Action::make('Pagar')
                         ->label('Pago insumo')
                         ->icon('heroicon-o-clipboard-document-list')
-
                         ->url(fn(Ordencompra $record): string => route('filament.home.resources.ordencompras.pago', ['record' => $record]))
-
-
                     // ->color(fn(Ordenpago $record): string => $record->estado === 'Por pagar' ? 'success' : 'primary')
                     // ->disabled(fn(Ordenpago $record): bool => $record->estado === 'cotizado'),
                 ])

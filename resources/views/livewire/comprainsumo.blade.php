@@ -119,7 +119,7 @@
                                 Cuenta de ahorro *
                             </label>
                             <select wire:model="cuentaSeleccionada" id="cuentaSeleccionada"
-                                class="fi-input block w-full rounded-lg border-none  px-3 py-2 text-gray-950 shadow-sm ring-1 ring-gray-950/10 transition duration-75 focus:ring-2 focus:ring-primary-500   dark:ring-white/20 dark:focus:ring-primary-500">
+                                class="fi-input block w-full rounded-lg border-none px-3 py-2 text-gray-950 shadow-sm ring-1 ring-gray-950/10 transition duration-75 focus:ring-2 focus:ring-primary-500 dark:ring-white/20 dark:focus:ring-primary-500">
                                 <option value="">Seleccione una cuenta</option>
                                 @foreach (\App\Models\Cuentahorro::where('user_id', Auth::id())->get() as $cuenta)
                                     <option value="{{ $cuenta->id }}">{{ $cuenta->nombre }} (Saldo:

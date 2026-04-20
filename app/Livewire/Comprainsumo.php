@@ -47,6 +47,14 @@ class Comprainsumo extends Component
             ->get();
 
         $this->fecha = now()->format('Y-m-d');
+
+        $cuentaPorDefecto = CuentaTrabajo::where('trabajo_id', $this->ordencompra->insumo->trabajo->id)
+            ->with('cuenta') // relación belongsTo en CuentaTrabajo
+            ->first();
+
+        if ($cuentaPorDefecto && $cuentaPorDefecto->cuenta) {
+            $this->cuentaSeleccionada = $cuentaPorDefecto->cuenta->id;
+        }
     }
 
     public function rules(): array
