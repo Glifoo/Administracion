@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Auth;
 
 class WidgetStats extends BaseWidget
 {
+    protected static ?int $sort = 1;
+
     protected function getStats(): array
     {
         $userId = Auth::id();

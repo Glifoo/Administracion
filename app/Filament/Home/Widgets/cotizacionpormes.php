@@ -12,6 +12,7 @@ class cotizacionpormes extends ChartWidget
 {
    protected static ?string $heading = 'Cotizaciones por Mes';
     protected static ?string $maxHeight = '300px';
+    protected static ?int $sort = 3;
 
     protected function getData(): array
     {

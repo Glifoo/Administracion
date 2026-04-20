@@ -95,7 +95,14 @@ class MovimientoahorroResource extends Resource
                     ->label('Concepto'),
 
                 tables\Columns\TextColumn::make('tipo')
-                    ->label('Tipo'),
+                    ->label('Tipo')
+                    ->badge()
+                    ->color(fn(string $state): string => match ($state) {
+                        'retiro' => 'danger',
+                        'transferencia' => 'warning',
+                        'deposito' => 'success',
+                    })
+                    ->searchable(),
 
                 tables\Columns\TextColumn::make('fecha')
                     ->date('d/m/Y')
@@ -130,9 +137,7 @@ class MovimientoahorroResource extends Resource
 
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    
-                ]),
+                Tables\Actions\BulkActionGroup::make([]),
             ]);
     }
 

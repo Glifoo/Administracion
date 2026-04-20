@@ -11,6 +11,7 @@ class trabajoporcliente extends ChartWidget
 {
      protected static ?string $heading = 'Trabajos por Cliente';
     protected static ?string $maxHeight = '300px';
+    protected static ?int $sort = 4;
 
     protected function getData(): array
     {
