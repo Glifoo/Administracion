@@ -12,6 +12,7 @@ use Livewire\Component;
 use Filament\Notifications\Notification;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Cotizar extends Component
 {
@@ -25,24 +26,12 @@ class Cotizar extends Component
     public $editandoInsumoId = null;
     public $confirmandoFinalizacion = false;
 
-
-    public function updated($propertyName)
-    {
-        $this->resetValidation($propertyName);
-    }
-
-    public function mount($identificador)
-    {
-        $this->identificador = $identificador;
-        $this->loadTrabajoData();
-    }
     public $nuevoInsumo = [
         'nombre' => '',
         'cantidad' => 1,
         'costo' => 0,
         'detalle' => ''
     ];
-
 
     public $insumoEditado = [
         'nombre' => '',
@@ -51,14 +40,74 @@ class Cotizar extends Component
         'detalle' => ''
     ];
 
+    // Variables cacheadas para evitar recálculos
+    protected $cachedInsumos = null;
+    protected $cachedTrabajo = null;
+    protected $cachedCalculos = null;
+
+    public function updated($propertyName)
+    {
+        $this->resetValidation($propertyName);
+        
+        // Limpiar caché cuando se modifican datos relevantes
+        if (str_starts_with($propertyName, 'nuevoInsumo') || 
+            $propertyName === 'editandoInsumoId' ||
+            $propertyName === 'insumoAEliminar') {
+            $this->clearCache();
+        }
+    }
+
+    public function mount($identificador)
+    {
+        $this->identificador = $identificador;
+        $this->loadTrabajoData();
+    }
+
+    protected function clearCache()
+    {
+        $this->cachedInsumos = null;
+        $this->cachedTrabajo = null;
+        $this->cachedCalculos = null;
+    }
 
     protected function loadTrabajoData()
     {
-        $trabajo = Trabajo::find($this->identificador);
+        // Optimización: Cargar solo los campos necesarios
+        $trabajo = Trabajo::select('id', 'trabajo', 'manobra', 'ganancia', 'iva', 'estado')
+            ->find($this->identificador);
+            
+        if (!$trabajo) {
+            abort(404, 'Trabajo no encontrado');
+        }
+        
         $this->trabajo = $trabajo->trabajo;
         $this->trabajoid = $trabajo->id;
         $this->manobra = $trabajo->manobra;
+        $this->estadoActual = $trabajo->estado;
+        
+        $this->cachedTrabajo = $trabajo;
     }
+
+    protected function getInsumosOptimized()
+    {
+        if ($this->cachedInsumos === null) {
+            $this->cachedInsumos = Insumo::where('trabajo_id', $this->identificador)
+                ->select('id', 'nombre', 'cantidad', 'costo', 'detalle', 'trabajo_id')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+        return $this->cachedInsumos;
+    }
+
+    protected function getTrabajoOptimized()
+    {
+        if ($this->cachedTrabajo === null) {
+            $this->cachedTrabajo = Trabajo::select('id', 'trabajo', 'manobra', 'ganancia', 'iva', 'estado')
+                ->find($this->identificador);
+        }
+        return $this->cachedTrabajo;
+    }
+
     public function agregarInsumo()
     {
         $this->validate([
@@ -67,28 +116,44 @@ class Cotizar extends Component
             'nuevoInsumo.costo' => 'required|numeric|min:0',
         ]);
 
-        Insumo::create([
-            'trabajo_id' => $this->identificador,
-            'nombre' => $this->nuevoInsumo['nombre'],
-            'cantidad' => $this->nuevoInsumo['cantidad'],
-            'costo' => $this->nuevoInsumo['costo'],
-            'detalle' => $this->nuevoInsumo['detalle'],
-        ]);
+        // Usar transacción para mantener integridad
+        DB::transaction(function () {
+            Insumo::create([
+                'trabajo_id' => $this->identificador,
+                'nombre' => $this->nuevoInsumo['nombre'],
+                'cantidad' => $this->nuevoInsumo['cantidad'],
+                'costo' => $this->nuevoInsumo['costo'],
+                'detalle' => $this->nuevoInsumo['detalle'] ?? null,
+            ]);
+        });
 
         $this->reset('nuevoInsumo');
+        $this->clearCache(); // Limpiar caché después de agregar
+        
+        Notification::make()
+            ->title('Insumo agregado')
+            ->success()
+            ->send();
+            
         $this->dispatch('insumo-agregado');
     }
 
     public function editarInsumo($insumoId)
     {
         $this->editandoInsumoId = $insumoId;
-        $insumo = Insumo::find($insumoId);
-        $this->insumoEditado = [
-            'nombre' => $insumo->nombre,
-            'cantidad' => $insumo->cantidad,
-            'costo' => $insumo->costo,
-            'detalle' => $insumo->detalle
-        ];
+        
+        // Optimización: Usar find con select específico
+        $insumo = Insumo::select('id', 'nombre', 'cantidad', 'costo', 'detalle')
+            ->find($insumoId);
+            
+        if ($insumo) {
+            $this->insumoEditado = [
+                'nombre' => $insumo->nombre,
+                'cantidad' => $insumo->cantidad,
+                'costo' => $insumo->costo,
+                'detalle' => $insumo->detalle
+            ];
+        }
     }
 
     public function actualizarInsumo()
@@ -99,14 +164,24 @@ class Cotizar extends Component
             'insumoEditado.costo' => 'required|numeric|min:0',
         ]);
 
-        Insumo::find($this->editandoInsumoId)->update([
-            'nombre' => $this->insumoEditado['nombre'],
-            'cantidad' => $this->insumoEditado['cantidad'],
-            'costo' => $this->insumoEditado['costo'],
-            'detalle' => $this->insumoEditado['detalle'],
-        ]);
+        DB::transaction(function () {
+            Insumo::where('id', $this->editandoInsumoId)
+                ->where('trabajo_id', $this->identificador) // Seguridad adicional
+                ->update([
+                    'nombre' => $this->insumoEditado['nombre'],
+                    'cantidad' => $this->insumoEditado['cantidad'],
+                    'costo' => $this->insumoEditado['costo'],
+                    'detalle' => $this->insumoEditado['detalle'],
+                ]);
+        });
 
         $this->cancelarEdicion();
+        $this->clearCache(); // Limpiar caché después de actualizar
+        
+        Notification::make()
+            ->title('Insumo actualizado')
+            ->success()
+            ->send();
     }
 
     public function cancelarEdicion()
@@ -118,19 +193,25 @@ class Cotizar extends Component
     public function eliminarInsumo()
     {
         if ($this->insumoAEliminar) {
-            $insumo = Insumo::find($this->insumoAEliminar);
+            DB::transaction(function () {
+                $insumo = Insumo::where('id', $this->insumoAEliminar)
+                    ->where('trabajo_id', $this->identificador)
+                    ->first();
+                    
+                if ($insumo) {
+                    $insumo->delete();
+                }
+            });
 
-            if ($insumo) {
-                $insumo->delete();
-
-                Notification::make()
-                    ->title('Insumo eliminado')
-                    ->success()
-                    ->send();
-            }
-
-            $this->insumoAEliminar = null;
+            $this->clearCache(); // Limpiar caché después de eliminar
+            
+            Notification::make()
+                ->title('Insumo eliminado')
+                ->success()
+                ->send();
         }
+
+        $this->insumoAEliminar = null;
     }
 
     public function confirmarEliminacion($insumoId)
@@ -141,82 +222,119 @@ class Cotizar extends Component
 
     public function confirmarFinalizacion()
     {
+        // Verificar si ya está cotizado
+        $trabajo = $this->getTrabajoOptimized();
+        if ($trabajo->estado === 'cotizado') {
+            Notification::make()
+                ->title('Error')
+                ->body('Este trabajo ya ha sido cotizado anteriormente.')
+                ->danger()
+                ->send();
+            return;
+        }
+        
         $this->confirmandoFinalizacion = true;
         $this->dispatch('open-modal', id: 'confirmar-finalizacion');
     }
 
-    public function terminarCotizacion()
+    protected function calcularCostosOptimized($insumos, $trabajo)
     {
-        $insumos = Insumo::where('trabajo_id', $this->identificador)->get();
-        $trabajo = Trabajo::find($this->identificador);
-        $usuarioid = Auth::user()->id;
+        // Optimización: Calcular usando colecciones
+        $costoInsumos = $insumos->sum('costo');
+        $costoBaseTotal = $costoInsumos + $trabajo->manobra;
 
-        $costoprod = $insumos->sum('costo');
-        // Sumamos insumos + mano de obra para tener el costo base total
-        $costoBaseTotal = $costoprod + $trabajo->manobra;
-
-        // 1. Calcular el Precio Neto (Costo + Ganancia Deseada)
-        // Usamos división para que el margen sea sobre el precio de venta neto
         $porcentajeGanancia = $trabajo->ganancia / 100;
-        $precioNeto = ($porcentajeGanancia < 1) ? ($costoBaseTotal / (1 - $porcentajeGanancia)) : ($costoBaseTotal * (1 + $porcentajeGanancia));
+        $precioNeto = $porcentajeGanancia < 1 
+            ? ($costoBaseTotal / (1 - $porcentajeGanancia)) 
+            : ($costoBaseTotal * (1 + $porcentajeGanancia));
 
-        // 2. Calcular el Precio Final de Factura (Incluyendo Impuestos de Bolivia)
         if ($trabajo->iva > 0) {
             $porcentajeImpuesto = $trabajo->iva / 100;
-            // Fórmula de Tasa Efectiva: Dividir entre (1 - tasa) para que el impuesto 
-            // calculado sobre el total sea exacto.
             $total = $precioNeto / (1 - $porcentajeImpuesto);
-            $ivaefec = $total * $porcentajeImpuesto; // Esto es lo que pagarás al estado
+            $ivaefec = $total * $porcentajeImpuesto;
         } else {
             $total = $precioNeto;
             $ivaefec = 0;
         }
 
-        // 3. Ganancia Real (Lo que queda tras pagar costos e impuestos del total)
         $gananciaefec = $total - $costoBaseTotal - $ivaefec;
 
-        // Actualización del modelo
-        $trabajo->update([
-            'estado' => 'cotizado',
-            'gananciaefectivo' => $gananciaefec,
-            'ivaefectivo' => $ivaefec,
-            'Costofactura' => $total, // Asegúrate de tener este campo en fillable si lo usas
-            'Costoproduccion' => $costoBaseTotal,
-            'Costofinal' => $total,
-        ]);
-
-        $trabajo->save();
-
-        $cuenta = null;
-
-        if ($trabajo->cuenta) {
-            $cuenta = Cuentahorro::create([
-                'nombre'   => 'Cuenta - ' . $trabajo->trabajo,
-                'user_id'  => $usuarioid,
-                'saldo'    => 0,
-            ]);
-
-            CuentaTrabajo::create([
-                'cuenta_id'  => $cuenta->id,
-                'trabajo_id' => $trabajo->id,
-            ]);
-        }
-
-        $ordenPago = OrdenPago::create([
-            'trabajo_id' => $trabajo->id,
+        return [
+            'costoBaseTotal' => $costoBaseTotal,
+            'precioNeto' => $precioNeto,
             'total' => $total,
-            'saldo' => $total,
-        ]);
+            'ivaefec' => $ivaefec,
+            'gananciaefec' => $gananciaefec
+        ];
+    }
 
-        foreach ($insumos as $insumo) {
-            Ordencompra::create([
-                'insumo_id' => $insumo->id,
-                'total' => $insumo->costo,  // cada insumo como una orden individual
-                'cuenta' => 0,              // aún no pagado
-                'saldo' => $insumo->costo,
-            ]);
+    public function terminarCotizacion()
+    {
+        // Verificar si ya está cotizado
+        $trabajo = Trabajo::find($this->identificador);
+        if ($trabajo->estado === 'cotizado') {
+            Notification::make()
+                ->title('Error')
+                ->body('Este trabajo ya ha sido cotizado anteriormente.')
+                ->danger()
+                ->send();
+            return redirect()->route('filament.home.resources.trabajos.index');
         }
 
+        DB::transaction(function () {
+            $insumos = Insumo::where('trabajo_id', $this->identificador)->get();
+            $trabajo = Trabajo::lockForUpdate()->find($this->identificador); // Lock para evitar condiciones de carrera
+            $usuarioid = Auth::id();
+
+            $calculos = $this->calcularCostosOptimized($insumos, $trabajo);
+
+            // Actualización optimizada del trabajo
+            $trabajo->update([
+                'estado' => 'cotizado',
+                'gananciaefectivo' => $calculos['gananciaefec'],
+                'ivaefectivo' => $calculos['ivaefec'],
+                'Costofactura' => $calculos['total'],
+                'Costoproduccion' => $calculos['costoBaseTotal'],
+                'Costofinal' => $calculos['total'],
+            ]);
+
+            // Crear cuenta de ahorro si no existe
+            if (!$trabajo->cuenta) {
+                $cuenta = Cuentahorro::create([
+                    'nombre' => 'Cuenta - ' . $trabajo->trabajo,
+                    'user_id' => $usuarioid,
+                    'saldo' => 0,
+                ]);
+
+                CuentaTrabajo::create([
+                    'cuenta_id' => $cuenta->id,
+                    'trabajo_id' => $trabajo->id,
+                ]);
+            }
+
+            // Crear orden de pago
+            $ordenPago = OrdenPago::create([
+                'trabajo_id' => $trabajo->id,
+                'total' => $calculos['total'],
+                'saldo' => $calculos['total'],
+            ]);
+
+            // Crear órdenes de compra usando chunk para muchos insumos
+            $insumos->chunk(100)->each(function ($chunk) use ($trabajo) {
+                $ordenesCompra = [];
+                foreach ($chunk as $insumo) {
+                    $ordenesCompra[] = [
+                        'insumo_id' => $insumo->id,
+                        'total' => $insumo->costo,
+                        'cuenta' => 0,
+                        'saldo' => $insumo->costo,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+                OrdenCompra::insert($ordenesCompra); // Insert masivo
+            });
+        });
 
         Notification::make()
             ->title('Cotización finalizada')
@@ -229,32 +347,32 @@ class Cotizar extends Component
 
     public function render()
     {
-        $insumos = Insumo::where('trabajo_id', $this->identificador)->get();
-        $trabajo = Trabajo::find($this->identificador);
-        $idtrabajo = $trabajo->id;
-
-        // 1. Costo Base (Insumos + Mano de Obra)
-        $costoprod = $insumos->sum('costo') + $trabajo->manobra;
-
-        // 2. Cálculo del Precio Neto (Ganancia sobre venta)
-        $porcentajeGanancia = $trabajo->ganancia / 100;
-        // Evitamos división por cero si la ganancia es 100%
-        $divisorGanancia = (1 - $porcentajeGanancia) > 0 ? (1 - $porcentajeGanancia) : 0.01;
-        $precioNeto = $costoprod / $divisorGanancia;
-
-        // 3. Cálculo del Total con Impuestos (Tasa Efectiva)
-        if ($trabajo->iva > 0) {
-            $porcentajeImpuesto = $trabajo->iva / 100;
-            $divisorImpuesto = (1 - $porcentajeImpuesto) > 0 ? (1 - $porcentajeImpuesto) : 0.01;
-            $total = $precioNeto / $divisorImpuesto;
-            $ivaefec = $total * $porcentajeImpuesto;
-        } else {
-            $total = $precioNeto;
-            $ivaefec = 0;
+        // Obtener datos optimizados
+        $insumos = $this->getInsumosOptimized();
+        $trabajo = $this->getTrabajoOptimized();
+        
+        // Verificar si el trabajo existe
+        if (!$trabajo) {
+            abort(404, 'Trabajo no encontrado');
         }
-
-        // 4. Ganancia Real Final (Lo que queda en bolsillo)
-        $gananciafinal = $total - $costoprod - $ivaefec;
+        
+        $idtrabajo = $trabajo->id;
+        
+        // Calcular costos usando el método optimizado
+        $calculos = $this->calcularCostosOptimized($insumos, $trabajo);
+        
+        // Si el trabajo ya está cotizado, mostrar los valores guardados
+        if ($trabajo->estado === 'cotizado') {
+            $total = $trabajo->Costofactura ?? $calculos['total'];
+            $costoprod = $trabajo->Costoproduccion ?? $calculos['costoBaseTotal'];
+            $ivaefec = $trabajo->ivaefectivo ?? $calculos['ivaefec'];
+            $gananciafinal = $trabajo->gananciaefectivo ?? $calculos['gananciaefec'];
+        } else {
+            $total = $calculos['total'];
+            $costoprod = $calculos['costoBaseTotal'];
+            $ivaefec = $calculos['ivaefec'];
+            $gananciafinal = $calculos['gananciaefec'];
+        }
 
         return view('livewire.cotizar', [
             'insumos' => $insumos,
@@ -262,7 +380,8 @@ class Cotizar extends Component
             'costoprod' => $costoprod,
             'idtrabajo' => $idtrabajo,
             'ivaefec' => $ivaefec,
-            'gananciafinal' => $gananciafinal
+            'gananciafinal' => $gananciafinal,
+            'trabajo' => $trabajo,
         ]);
     }
 }
