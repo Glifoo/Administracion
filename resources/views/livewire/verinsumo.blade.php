@@ -15,6 +15,10 @@
                                 </th>
                                 <th
                                     class="fi-table-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 text-start text-sm font-semibold text-gray-950 dark:text-white">
+                                    Cantidad
+                                </th>
+                                <th
+                                    class="fi-table-header-cell px-3 py-3.5 sm:first-of-type:ps-6 sm:last-of-type:pe-6 text-start text-sm font-semibold text-gray-950 dark:text-white">
                                     Detalle
                                 </th>
                                 <th
@@ -29,6 +33,10 @@
                                     <td
                                         class="fi-table-cell px-3 py-4 whitespace-nowrap text-sm text-gray-950 dark:text-white">
                                         {{ $item->nombre }}
+                                    </td>
+                                     <td
+                                        class="fi-table-cell px-3 py-4 whitespace-nowrap text-sm text-gray-950 dark:text-white">
+                                        {{ $item->cantidad }}
                                     </td>
                                     <td
                                         class="fi-table-cell px-3 py-4 whitespace-nowrap text-sm text-gray-950 dark:text-white">
