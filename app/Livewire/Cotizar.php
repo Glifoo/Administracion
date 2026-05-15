@@ -26,6 +26,11 @@ class Cotizar extends Component
     public $editandoInsumoId = null;
     public $confirmandoFinalizacion = false;
 
+    public $porcentajeGanancia;
+    public $porcentajeIVA;
+    public $mostrarAjustes = false;
+
+
     public $nuevoInsumo = [
         'nombre' => '',
         'cantidad' => 1,
@@ -48,11 +53,13 @@ class Cotizar extends Component
     public function updated($propertyName)
     {
         $this->resetValidation($propertyName);
-        
+
         // Limpiar caché cuando se modifican datos relevantes
-        if (str_starts_with($propertyName, 'nuevoInsumo') || 
+        if (
+            str_starts_with($propertyName, 'nuevoInsumo') ||
             $propertyName === 'editandoInsumoId' ||
-            $propertyName === 'insumoAEliminar') {
+            $propertyName === 'insumoAEliminar'
+        ) {
             $this->clearCache();
         }
     }
@@ -61,6 +68,76 @@ class Cotizar extends Component
     {
         $this->identificador = $identificador;
         $this->loadTrabajoData();
+
+        // Inicializar porcentajes desde el trabajo
+        $trabajo = $this->getTrabajoOptimized();
+        $this->porcentajeGanancia = $trabajo->ganancia ?? 30;
+        $this->porcentajeIVA = $trabajo->iva ?? 0;
+    }
+
+    public function updatedPorcentajeGanancia()
+    {
+        // Validar rango
+        if ($this->porcentajeGanancia < 0) $this->porcentajeGanancia = 0;
+        if ($this->porcentajeGanancia > 100) $this->porcentajeGanancia = 100;
+
+        $this->actualizarPorcentajesTrabajo();
+    }
+
+    public function updatedPorcentajeIVA()
+    {
+        // Validar rango
+        if ($this->porcentajeIVA < 0) $this->porcentajeIVA = 0;
+        if ($this->porcentajeIVA > 100) $this->porcentajeIVA = 100;
+
+        $this->actualizarPorcentajesTrabajo();
+    }
+
+    public function actualizarPorcentajesTrabajo()
+    {
+        // Solo actualizar si el trabajo NO está cotizado
+        if ($this->estadoActual !== 'cotizado') {
+            DB::transaction(function () {
+                Trabajo::where('id', $this->identificador)->update([
+                    'ganancia' => $this->porcentajeGanancia,
+                    'iva' => $this->porcentajeIVA,
+                ]);
+            });
+
+            $this->clearCache(); // Limpiar caché para recalcular
+
+            Notification::make()
+                ->title('Porcentajes actualizados')
+                ->body("Ganancia: {$this->porcentajeGanancia}% | IVA: {$this->porcentajeIVA}%")
+                ->success()
+                ->seconds(2)
+                ->send();
+        }
+    }
+
+    public function aplicarGananciaRecomendada()
+    {
+        // Puedes ajustar esta lógica según tus necesidades
+        $insumos = $this->getInsumosOptimized();
+        $costoTotal = $insumos->sum('costo') + $this->manobra;
+
+        if ($costoTotal <= 1000) {
+            $this->porcentajeGanancia = 50;
+        } elseif ($costoTotal <= 5000) {
+            $this->porcentajeGanancia = 40;
+        } elseif ($costoTotal <= 10000) {
+            $this->porcentajeGanancia = 35;
+        } else {
+            $this->porcentajeGanancia = 30;
+        }
+
+        $this->porcentajeIVA = 16; // Ejemplo: IVA estándar
+        $this->actualizarPorcentajesTrabajo();
+    }
+
+    public function toggleAjustes()
+    {
+        $this->mostrarAjustes = !$this->mostrarAjustes;
     }
 
     protected function clearCache()
@@ -75,16 +152,16 @@ class Cotizar extends Component
         // Optimización: Cargar solo los campos necesarios
         $trabajo = Trabajo::select('id', 'trabajo', 'manobra', 'ganancia', 'iva', 'estado')
             ->find($this->identificador);
-            
+
         if (!$trabajo) {
             abort(404, 'Trabajo no encontrado');
         }
-        
+
         $this->trabajo = $trabajo->trabajo;
         $this->trabajoid = $trabajo->id;
         $this->manobra = $trabajo->manobra;
         $this->estadoActual = $trabajo->estado;
-        
+
         $this->cachedTrabajo = $trabajo;
     }
 
@@ -129,23 +206,23 @@ class Cotizar extends Component
 
         $this->reset('nuevoInsumo');
         $this->clearCache(); // Limpiar caché después de agregar
-        
+
         Notification::make()
             ->title('Insumo agregado')
             ->success()
             ->send();
-            
+
         $this->dispatch('insumo-agregado');
     }
 
     public function editarInsumo($insumoId)
     {
         $this->editandoInsumoId = $insumoId;
-        
+
         // Optimización: Usar find con select específico
         $insumo = Insumo::select('id', 'nombre', 'cantidad', 'costo', 'detalle')
             ->find($insumoId);
-            
+
         if ($insumo) {
             $this->insumoEditado = [
                 'nombre' => $insumo->nombre,
@@ -177,7 +254,7 @@ class Cotizar extends Component
 
         $this->cancelarEdicion();
         $this->clearCache(); // Limpiar caché después de actualizar
-        
+
         Notification::make()
             ->title('Insumo actualizado')
             ->success()
@@ -197,14 +274,14 @@ class Cotizar extends Component
                 $insumo = Insumo::where('id', $this->insumoAEliminar)
                     ->where('trabajo_id', $this->identificador)
                     ->first();
-                    
+
                 if ($insumo) {
                     $insumo->delete();
                 }
             });
 
             $this->clearCache(); // Limpiar caché después de eliminar
-            
+
             Notification::make()
                 ->title('Insumo eliminado')
                 ->success()
@@ -232,7 +309,7 @@ class Cotizar extends Component
                 ->send();
             return;
         }
-        
+
         $this->confirmandoFinalizacion = true;
         $this->dispatch('open-modal', id: 'confirmar-finalizacion');
     }
@@ -244,8 +321,8 @@ class Cotizar extends Component
         $costoBaseTotal = $costoInsumos + $trabajo->manobra;
 
         $porcentajeGanancia = $trabajo->ganancia / 100;
-        $precioNeto = $porcentajeGanancia < 1 
-            ? ($costoBaseTotal / (1 - $porcentajeGanancia)) 
+        $precioNeto = $porcentajeGanancia < 1
+            ? ($costoBaseTotal / (1 - $porcentajeGanancia))
             : ($costoBaseTotal * (1 + $porcentajeGanancia));
 
         if ($trabajo->iva > 0) {
@@ -345,22 +422,58 @@ class Cotizar extends Component
         return redirect()->route('filament.home.resources.trabajos.index');
     }
 
+    protected function calcularCostosConPorcentajes($insumos, $trabajo)
+    {
+        $costoInsumos = $insumos->sum('costo');
+        $costoBaseTotal = $costoInsumos + $trabajo->manobra;
+
+        // Usar porcentajes desde las propiedades o desde el trabajo
+        $ganancia = $this->porcentajeGanancia ?? $trabajo->ganancia;
+        $iva = $this->porcentajeIVA ?? $trabajo->iva;
+
+        $porcentajeGanancia = $ganancia / 100;
+        $precioNeto = $porcentajeGanancia < 1
+            ? ($costoBaseTotal / (1 - $porcentajeGanancia))
+            : ($costoBaseTotal * (1 + $porcentajeGanancia));
+
+        if ($iva > 0) {
+            $porcentajeImpuesto = $iva / 100;
+            $total = $precioNeto / (1 - $porcentajeImpuesto);
+            $ivaefec = $total * $porcentajeImpuesto;
+        } else {
+            $total = $precioNeto;
+            $ivaefec = 0;
+        }
+
+        $gananciaefec = $total - $costoBaseTotal - $ivaefec;
+
+        return [
+            'costoBaseTotal' => $costoBaseTotal,
+            'precioNeto' => $precioNeto,
+            'total' => $total,
+            'ivaefec' => $ivaefec,
+            'gananciaefec' => $gananciaefec
+        ];
+    }
+
     public function render()
     {
         // Obtener datos optimizados
         $insumos = $this->getInsumosOptimized();
         $trabajo = $this->getTrabajoOptimized();
-        
+
         // Verificar si el trabajo existe
         if (!$trabajo) {
             abort(404, 'Trabajo no encontrado');
         }
-        
+
         $idtrabajo = $trabajo->id;
-        
+
+        $calculos = $this->calcularCostosConPorcentajes($insumos, $trabajo);
+
         // Calcular costos usando el método optimizado
         $calculos = $this->calcularCostosOptimized($insumos, $trabajo);
-        
+
         // Si el trabajo ya está cotizado, mostrar los valores guardados
         if ($trabajo->estado === 'cotizado') {
             $total = $trabajo->Costofactura ?? $calculos['total'];
