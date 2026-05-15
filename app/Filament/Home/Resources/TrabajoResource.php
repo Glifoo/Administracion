@@ -182,20 +182,16 @@ class TrabajoResource extends Resource
                     })
             ])
             ->persistFiltersInSession()
-            ->persistSearchInSession()
 
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\Action::make('cotizar')
                         ->label('Cotizar')
                         ->icon('heroicon-o-clipboard-document-list')
-                        ->url(fn(Trabajo $record): string => route('filament.home.resources.trabajos.cotizar', [
-                            'record' => $record,
-                            'table' => 'trabajos', // 👈 Parámetro para identificar la tabla
-                        ]))
+                        ->url(fn(Trabajo $record): string => route('filament.home.resources.trabajos.cotizar', ['record' => $record]))
                         ->color(fn(Trabajo $record): string => $record->estado === 'por cotizar' ? 'success' : 'gray')
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
-
+                        
                     Tables\Actions\EditAction::make()
                         ->color(fn(Trabajo $record): string => $record->estado === 'por cotizar' ? 'success' : 'gray')
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
