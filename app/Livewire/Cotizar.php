@@ -376,7 +376,7 @@ class Cotizar extends Component
             ]);
 
             // Crear cuenta de ahorro si no existe
-            if (!$trabajo->cuenta) {
+            if ($trabajo->cuenta ==1) {
                 $cuenta = Cuentahorro::create([
                     'nombre' => 'Cuenta - ' . $trabajo->trabajo,
                     'user_id' => $usuarioid,
