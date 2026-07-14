@@ -73,6 +73,31 @@ class Cotizar extends Component
         $trabajo = $this->getTrabajoOptimized();
         $this->porcentajeGanancia = $trabajo->ganancia ?? 30;
         $this->porcentajeIVA = $trabajo->iva ?? 0;
+
+        $this->validarPorcentajes();
+    }
+
+    protected function validarPorcentajes()
+    {
+        // Asegurar que ganancia no sea 100% (evitar división por cero)
+        if ($this->porcentajeGanancia >= 100) {
+            $this->porcentajeGanancia = 99.99;
+        }
+
+        // Asegurar que ganancia no sea negativa
+        if ($this->porcentajeGanancia < 0) {
+            $this->porcentajeGanancia = 0;
+        }
+
+        // Asegurar que IVA no sea 100% (evitar división por cero)
+        if ($this->porcentajeIVA >= 100) {
+            $this->porcentajeIVA = 99.99;
+        }
+
+        // Asegurar que IVA no sea negativo
+        if ($this->porcentajeIVA < 0) {
+            $this->porcentajeIVA = 0;
+        }
     }
 
     public function updatedPorcentajeGanancia()
@@ -316,20 +341,46 @@ class Cotizar extends Component
 
     protected function calcularCostosOptimized($insumos, $trabajo)
     {
-        // Optimización: Calcular usando colecciones
+        // Asegurar que los porcentajes sean válidos
+        $ganancia = $trabajo->ganancia ?? 0;
+        $iva = $trabajo->iva ?? 0;
+
+        // Validar que no sean 100% para evitar división por cero
+        if ($ganancia >= 100) {
+            $ganancia = 99.99;
+        }
+        if ($iva >= 100) {
+            $iva = 99.99;
+        }
+
+        // Calcular costo base
         $costoInsumos = $insumos->sum('costo');
-        $costoBaseTotal = $costoInsumos + $trabajo->manobra;
+        $costoBaseTotal = $costoInsumos + ($trabajo->manobra ?? 0);
 
-        $porcentajeGanancia = $trabajo->ganancia / 100;
-        $precioNeto = $porcentajeGanancia < 1
-            ? ($costoBaseTotal / (1 - $porcentajeGanancia))
-            : ($costoBaseTotal * (1 + $porcentajeGanancia));
+        // Calcular precio neto con ganancia
+        $porcentajeGanancia = $ganancia / 100;
+        if ($porcentajeGanancia < 1) {
+            // Si la ganancia es < 100%, usar fórmula de margen
+            $precioNeto = ($porcentajeGanancia > 0)
+                ? ($costoBaseTotal / (1 - $porcentajeGanancia))
+                : $costoBaseTotal;
+        } else {
+            // Si la ganancia es >= 100% (caso extremo), usar markup simple
+            $precioNeto = $costoBaseTotal * (1 + $porcentajeGanancia);
+        }
 
-        if ($trabajo->iva > 0) {
-            $porcentajeImpuesto = $trabajo->iva / 100;
+        // Calcular IVA
+        $porcentajeImpuesto = $iva / 100;
+        if ($porcentajeImpuesto > 0 && $porcentajeImpuesto < 1) {
+            // IVA estándar (menos de 100%)
             $total = $precioNeto / (1 - $porcentajeImpuesto);
             $ivaefec = $total * $porcentajeImpuesto;
+        } elseif ($porcentajeImpuesto >= 1) {
+            // Caso extremo: IVA >= 100%
+            $total = $precioNeto * (1 + $porcentajeImpuesto);
+            $ivaefec = $precioNeto * $porcentajeImpuesto;
         } else {
+            // Sin IVA
             $total = $precioNeto;
             $ivaefec = 0;
         }
@@ -376,7 +427,7 @@ class Cotizar extends Component
             ]);
 
             // Crear cuenta de ahorro si no existe
-            if ($trabajo->cuenta ==1) {
+            if ($trabajo->cuenta == 1) {
                 $cuenta = Cuentahorro::create([
                     'nombre' => 'Cuenta - ' . $trabajo->trabajo,
                     'user_id' => $usuarioid,
@@ -425,22 +476,42 @@ class Cotizar extends Component
     protected function calcularCostosConPorcentajes($insumos, $trabajo)
     {
         $costoInsumos = $insumos->sum('costo');
-        $costoBaseTotal = $costoInsumos + $trabajo->manobra;
+        $costoBaseTotal = $costoInsumos + ($trabajo->manobra ?? 0);
 
         // Usar porcentajes desde las propiedades o desde el trabajo
-        $ganancia = $this->porcentajeGanancia ?? $trabajo->ganancia;
-        $iva = $this->porcentajeIVA ?? $trabajo->iva;
+        $ganancia = $this->porcentajeGanancia ?? $trabajo->ganancia ?? 0;
+        $iva = $this->porcentajeIVA ?? $trabajo->iva ?? 0;
 
+        // Validar y corregir porcentajes para evitar divisiones por cero
+        if ($ganancia >= 100) $ganancia = 99.99;
+        if ($ganancia < 0) $ganancia = 0;
+        if ($iva >= 100) $iva = 99.99;
+        if ($iva < 0) $iva = 0;
+
+        // Calcular precio neto con ganancia
         $porcentajeGanancia = $ganancia / 100;
-        $precioNeto = $porcentajeGanancia < 1
-            ? ($costoBaseTotal / (1 - $porcentajeGanancia))
-            : ($costoBaseTotal * (1 + $porcentajeGanancia));
+        if ($porcentajeGanancia < 1) {
+            // Si la ganancia es < 100%, usar fórmula de margen
+            $precioNeto = ($porcentajeGanancia > 0)
+                ? ($costoBaseTotal / (1 - $porcentajeGanancia))
+                : $costoBaseTotal;
+        } else {
+            // Si la ganancia es >= 100% (caso extremo), usar markup simple
+            $precioNeto = $costoBaseTotal * (1 + $porcentajeGanancia);
+        }
 
-        if ($iva > 0) {
-            $porcentajeImpuesto = $iva / 100;
+        // Calcular IVA
+        $porcentajeImpuesto = $iva / 100;
+        if ($porcentajeImpuesto > 0 && $porcentajeImpuesto < 1) {
+            // IVA estándar (menos de 100%)
             $total = $precioNeto / (1 - $porcentajeImpuesto);
             $ivaefec = $total * $porcentajeImpuesto;
+        } elseif ($porcentajeImpuesto >= 1) {
+            // Caso extremo: IVA >= 100%
+            $total = $precioNeto * (1 + $porcentajeImpuesto);
+            $ivaefec = $precioNeto * $porcentajeImpuesto;
         } else {
+            // Sin IVA
             $total = $precioNeto;
             $ivaefec = 0;
         }

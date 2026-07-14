@@ -13,7 +13,6 @@
             <h3 class="text-base sm:text-lg font-semibold text-gray-800 dark:text-gray-200">
                 Ajustar Porcentajes
             </h3>
-            
         </div>
         <svg 
             class="w-5 h-5 text-gray-500 transition-transform duration-200 {{ $mostrarAjustes ? 'rotate-180' : '' }}" 
@@ -44,10 +43,11 @@
                                 type="number" 
                                 wire:model.live="porcentajeGanancia" 
                                 min="0" 
-                                max="100" 
-                                step="1"
-                                class="w-20 text-center rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                max="99.99" 
+                                step="0.01"
+                                class="w-24 text-center rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
                                 {{ $estadoActual === 'cotizado' ? 'disabled' : '' }}
+                                oninput="if(this.value > 99.99) this.value = 99.99; if(this.value < 0) this.value = 0;"
                             >
                             <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
                         </div>
@@ -58,8 +58,8 @@
                     type="range" 
                     wire:model.live="porcentajeGanancia" 
                     min="0" 
-                    max="100" 
-                    step="1"
+                    max="99.99" 
+                    step="0.01"
                     class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                     style="accent-color: #10b981;"
                     {{ $estadoActual === 'cotizado' ? 'disabled' : '' }}
@@ -69,22 +69,26 @@
                     <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
                         <div 
                             class="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-300"
-                            style="width: {{ $porcentajeGanancia }}%"
+                            style="width: {{ min($porcentajeGanancia ?? 0, 99.99) }}%"
                         ></div>
                     </div>
                     <span class="text-xs font-medium text-gray-600 dark:text-gray-400 min-w-[45px]">
-                        {{ $porcentajeGanancia }}%
+                        {{ number_format($porcentajeGanancia ?? 0, 2) }}%
                     </span>
                 </div>
                 
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" wire:click="$set('porcentajeGanancia', 0)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-slate-50 dark:text-gray-300">0%</button>
-                    <button type="button" wire:click="$set('porcentajeGanancia', 20)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200">20%</button>
-                    <button type="button" wire:click="$set('porcentajeGanancia', 25)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200">25%</button>
-                    <button type="button" wire:click="$set('porcentajeGanancia', 30)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200">30%</button>
-                    <button type="button" wire:click="$set('porcentajeGanancia', 40)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200">40%</button>
-                    <button type="button" wire:click="$set('porcentajeGanancia', 50)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200">50%</button>
+                    <button type="button" wire:click="$set('porcentajeGanancia', 0)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white dark:text-gray-300">0%</button>
+                    <button type="button" wire:click="$set('porcentajeGanancia', 20)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">20%</button>
+                    <button type="button" wire:click="$set('porcentajeGanancia', 25)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">25%</button>
+                    <button type="button" wire:click="$set('porcentajeGanancia', 30)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">30%</button>
+                    <button type="button" wire:click="$set('porcentajeGanancia', 40)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">40%</button>
+                    <button type="button" wire:click="$set('porcentajeGanancia', 50)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400">50%</button>
                 </div>
+                
+                @error('porcentajeGanancia')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Separador -->
@@ -102,10 +106,11 @@
                                 type="number" 
                                 wire:model.live="porcentajeIVA" 
                                 min="0" 
-                                max="100" 
-                                step="1"
-                                class="w-20 text-center rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                max="99.99" 
+                                step="0.01"
+                                class="w-24 text-center rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1 text-sm font-semibold text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 {{ $estadoActual === 'cotizado' ? 'disabled' : '' }}
+                                oninput="if(this.value > 99.99) this.value = 99.99; if(this.value < 0) this.value = 0;"
                             >
                             <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">%</span>
                         </div>
@@ -116,8 +121,8 @@
                     type="range" 
                     wire:model.live="porcentajeIVA" 
                     min="0" 
-                    max="100" 
-                    step="1"
+                    max="99.99" 
+                    step="0.01"
                     class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                     style="accent-color: #3b82f6;"
                     {{ $estadoActual === 'cotizado' ? 'disabled' : '' }}
@@ -127,19 +132,23 @@
                     <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden dark:bg-gray-700">
                         <div 
                             class="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-300"
-                            style="width: {{ $porcentajeIVA }}%"
+                            style="width: {{ min($porcentajeIVA ?? 0, 99.99) }}%"
                         ></div>
                     </div>
                     <span class="text-xs font-medium text-gray-600 dark:text-gray-400 min-w-[45px]">
-                        {{ $porcentajeIVA }}%
+                        {{ number_format($porcentajeIVA ?? 0, 2) }}%
                     </span>
                 </div>
                 
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" wire:click="$set('porcentajeIVA', 0)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">Exento (0%)</button>
-                    <button type="button" wire:click="$set('porcentajeIVA', 16)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">Estándar (16%)</button>
-                    <button type="button" wire:click="$set('porcentajeIVA', 21)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200">General (21%)</button>
+                    <button type="button" wire:click="$set('porcentajeIVA', 0)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white dark:text-gray-300">Exento (0%)</button>
+                    <button type="button" wire:click="$set('porcentajeIVA', 16)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400">Estándar (16%)</button>
+                    <button type="button" wire:click="$set('porcentajeIVA', 21)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400">General (21%)</button>
                 </div>
+                
+                @error('porcentajeIVA')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
 
             @if($estadoActual === 'cotizado')
@@ -147,6 +156,18 @@
                     ⚠️ Esta cotización ya está finalizada. No se pueden modificar los porcentajes.
                 </div>
             @endif
+            
+            <!-- Botón para aplicar ganancia recomendada -->
+            <div class="pt-2">
+                <button 
+                    type="button" 
+                    wire:click="aplicarGananciaRecomendada" 
+                    class="w-full px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    {{ $estadoActual === 'cotizado' ? 'disabled' : '' }}
+                >
+                    🎯 Aplicar Ganancia Recomendada
+                </button>
+            </div>
         </div>
     </div>
 </div>
