@@ -6,6 +6,7 @@ use App\Filament\Home\Resources\OrdenpagoResource\Pages;
 use App\Filament\Home\Resources\OrdenpagoResource\Pages\Pagos;
 use App\Filament\Home\Resources\OrdenpagoResource\RelationManagers;
 use App\Filament\Home\Resources\TrabajoResource\Pages\CotizarTrabajo;
+use App\Models\Client;
 use App\Models\Ordenpago;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -20,6 +21,10 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Blade;
 use Filament\Tables\Actions\Action;
 use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Get;
+use Filament\Tables\Filters\SelectFilter;
 
 class OrdenpagoResource extends Resource
 {
@@ -78,8 +83,32 @@ class OrdenpagoResource extends Resource
                     ->label('Fecha'),
             ])
             ->filters([
-                //
+                Filter::make('cliente_trabajo')
+                    ->form([
+                        Select::make('cliente_id')
+                            ->label('Cliente')
+                            ->options(function () {
+                                return Client::where('usuario_id', Auth::user()->id)
+                                    ->pluck('nombre', 'id');
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->live(),
+                    ]),
+                SelectFilter::make('estado')
+                    ->label('Estado de Pago')
+                    ->options([
+                        'Por pagar' => 'Por pagar',
+                        'cancelado' => 'cancelado',
+                    ])
+                    ->query(function (Builder $query, array $data) {
+                        if (!empty($data['value'])) {
+                            $query->where('estado', $data['value']);
+                        }
+                    }),
+                    
             ])
+            ->persistFiltersInSession()
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\Action::make('Pagar')

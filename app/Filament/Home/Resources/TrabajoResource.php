@@ -23,6 +23,7 @@ use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\DatePicker;
 
 class TrabajoResource extends Resource
 {
@@ -180,6 +181,23 @@ class TrabajoResource extends Resource
                             $query->where('estado', $data['value']);
                         }
                     })
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->label('Fecha inicio'),
+                        DatePicker::make('created_until')
+                            ->label('Fecha final'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
             ])
             ->persistFiltersInSession()
 
@@ -191,7 +209,7 @@ class TrabajoResource extends Resource
                         ->url(fn(Trabajo $record): string => route('filament.home.resources.trabajos.cotizar', ['record' => $record]))
                         ->color(fn(Trabajo $record): string => $record->estado === 'por cotizar' ? 'success' : 'gray')
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),
-                        
+
                     Tables\Actions\EditAction::make()
                         ->color(fn(Trabajo $record): string => $record->estado === 'por cotizar' ? 'success' : 'gray')
                         ->disabled(fn(Trabajo $record): bool => $record->estado === 'cotizado'),

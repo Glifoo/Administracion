@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
 
 class MovimientoahorroResource extends Resource
 {
@@ -123,9 +124,29 @@ class MovimientoahorroResource extends Resource
                     ->label('Cuenta de ahorro')
                     ->options(fn() => Cuentahorro::where('user_id', Auth::id())
                         ->pluck('nombre', 'id')
-                        ->toArray()),
+                        ->toArray())
+                        
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->label('Fecha inicio'),
+                        DatePicker::make('created_until')
+                            ->label('Fecha final'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+
 
             ])
+
             ->persistFiltersInSession()
 
 
